@@ -11,7 +11,7 @@ Cílem této práce je tedy navrhnout prototyp systému chytré domácnosti zam�
 
 Toto řešení by tedy mělo v existující domácnosti používající „hloupé“ přímotopné konvektory zajistit cenově dostupný systém, který by měl zvýšit uživatelské pohodlí i budoucí energetická úspora.
 
-\chapter{(Teorie) Analýza systému vytápění}
+\chapter{Systémy vytápění}
 \label{teorie}
 Tato kapitola shrnuje existující řešení, které byly inspirací při vytváření řešení.
 
@@ -56,7 +56,7 @@ Na světovém trhu ovšem existují i řešení v podobě elektrických topení 
 
 
 \section{Tuya Wi-Fi termostat}
-Posledním zajímavým produktem ve světě je Tuya Wi-Fi termostat \cite{tuyaterm}, který by svou formou řešení byl z předchozích zmíněný nejvhodnější volbou do prostředí s existujícími přímotopnými konvektory, které bychom chtěli připojit k Wi-Fi a vzdáleně je ovládat a monitorivat. Podporuje scény, časování a programování v aplikacích Tuya/Smart Life, a také Amazon Alexa a Google Assistant.
+Posledním zajímavým produktem ve světě je Tuya Wi-Fi termostat \cite{tuyaterm}, který by svou formou byl z předchozích zmíněný nejvhodnější volbou do prostředí s existujícími přímotopnými konvektory, které bychom chtěli připojit k Wi-Fi a vzdáleně je ovládat a monitorivat. Svým hardwarovým provedením je také podobný řešení představeném v podkapitole \ref{navrh-shelly}.
 
 \begin{figure}[hbt]
 \centering
@@ -65,10 +65,12 @@ Posledním zajímavým produktem ve světě je Tuya Wi-Fi termostat \cite{tuyate
 \end{figure}
 
 
-\chapter{Návrh systému}
+\chapter{Návrh řešení}
+\label{navrh}
 Tato kapitola se zabývá návrhem softwarové i hardwarové části a nastíní technologie použité pro vytvoření navrženého řešení.
 
 \section{Shelly 1PM}
+\label{navrh-shelly}
 Shelly 1PM (série 1 + {\it power measurement}) je Wi-Fi relé, které bylo zvoleno pro svou nízkou cenu a širokou funkcionalitu. Umožňuje spínání zásuvky, do které je zapojen přímotop, monitorování její spotřeby ve Wattech a s pomocí přídavného modulu měřit i teplotu v místnosti. Po zapojení hardware je ve vestavěném webovém rozhraní možné toto relé připojit k domácí Wi-Fi síti a mimo jiné mu například přiřazení statické IP adresy, nastavení zdrojového napětí 110 nebo 220 V, nastavení časové zóny nebo aktualizace firmware \cite{shelly_1pm}.
 
 Pro komunikaci se Shelly 1PM nabízí výrobce kompatibilitu s populárními platformami Android, iOS, Amazon Alexa, Google Assistant a domácí automatizační servery s použitím protokolů MQTT, CoAP a REST API \cite{shelly_1pm}. V této práci bude později využita komunikace přes rozhraní REST.
@@ -131,13 +133,29 @@ Kromě běhových služeb zahrnuje .NET také rozsáhlé knihovny. Tyto knihovny
 
 
 \section{ASP.NET Core Web API}
-ASP.NET Core podporuje vytváření webových aplikačních rozhraní pomocí {\it controllerů} dle návrhového vzoru MVC nebo pomocí minimálních API. V této práci je použit přístup {\it minimálního API}.
+Serverovou částí vypracovaného řešení bude software běžící pod frameworkem {\it ASP.NET Core}. Tento framework prezentuje dle \cite{about_asp} řadu funkcí, jako je správa závislostí ({\it dependency injection}), konfigurace, {\it middleware} a další. ASP.NET Core podporuje vytváření webových aplikačních rozhraní pomocí {\it controllerů} \cite{asp_controllers} dle návrhového vzoru MVC ({\it Model-View-Controller}) nebo pomocí minimálních API. V této práci je použit přístup {\it minimálního API}, jelikož se primárně nejedná o robustní webovou aplikaci.
 
+Aplikace vytvořené pomocí dostupných webových šablon obsahují spouštěcí kód aplikace v souboru {\it Program.cs}, kde jsou konfigurovány aplikací požadované služby a kanál ({\it pipeline}) zpracování požadavků aplikace je definován jako řada komponent middlewaru.
+
+{\it Vkládání závislostí} (DI) zpřístupňuje nakonfigurované služby v celé aplikaci. Služby jsou přidány do kontejneru DI pomocí {\it WebApplicationBuilder.Services} jako {\it Singleton} (jediná instance dostupná v rámci celé aplikace), {\it Transient} (pro každou injekci je vytvořena nová instance třídy) a další. Služby se obvykle získávají z DI pomocí konstruktorového vkládání ({\it constuctor injection}), kde jsou služby specifikovány v parametrech konstruktoru.
+
+Zpracování požadavků je složeno jako řada middlewarových komponent. Každá komponenta provádí operace v rámci {\it HttpContext} a buď vyvolá další middleware v kanálu, nebo ukončí požadavek. Typicky používanými middleware jsou například autorizace, vývojářská stránka s informacemi o chybách, a nebo přesměrování na HTTPS. Pomocí plánovacího middleware je v této práci také zajištěno periodické volání služeb frameworku strojového učení a databázového klienta pro ukládání záznamů o měřeních teploty.
+
+ASP.NET Core poskytuje implementaci serveru Kestrel, který může běžet jako veřejně přístupný server vystavený přímo internetu. Kestrel je však často provozován v konfiguraci reverzní proxy se servery Nginx nebo Apache.
 
 
 \section{ML.NET}
+ML.NET je dle \cite{what_is_mlnet1} open-source multiplatformní framework strojového učení pro vytváření aplikací na platformě .NET v jazycích C\# nebo F\#. Obsahuje funkce jako automatizované strojové učení ({\it AutoML}) a nástroje jako {\it ML.NET CLI} a {\it ML.NET Model Builder}.
 
+Aplikace strojového učení využívají k předpovědi vzorů v datech, místo toho aby je bylo nutné explicitně programovat. Ústředním bodem ML.NET je model strojového učení. Model specifikuje kroky potřebné k transformaci vstupních dat do predikce. ML.NET umožňuje trénovat vlastní model nebo importovat předem trénovaný model TensorFlow či ONNX.
 
+ML.NET dle \cite{what_is_mlnet2} podporuje řadu úloh strojového učení: {\it klasifikace/kategorizace} (např. rozdělení zpětné vazby na pozitivní/negativní), {\it regrese} (předpověď spojité hodnoty, např. ceny domu na základě velikosti a lokality), {\it detekce anomálií} (např. detekce podvodných bankovních transakcí), {\it doporučení} (např. produktu na základě předchozích nákupů zákazníka), {\it časové řady} (sekvenční data, např. předpověď počasí) a {\it klasifikace obrázků} (např. kategorizace druhů rostlin).
+
+V této práci se bude pracovat s po sobě jdoucími měřeními vývoje teploty v místnosti, které se určitým způsobem vyvíjí v čase. Jedná se tedy o časovou řadu. Analýza časových řad podporovaná frameworkem ML.NET pomáhá poskytnout odpověď na otázku budoucího vývoje teploty tím, že se podívá na historická data, identifikuje vzorce a použije tyto informace k předpovědi. Algoritmus rozhodnutí o stavu topení pracující s touto předpovědí bude popsán v kapitole \ref{implementace}.
+
+Dle \cite{mlnet_tutorial} ML.NET pro analýzu dat používá techniku jednorozměrné analýzy časových řad. Jednorozměrná analýza časových řad se dívá na jediné numerické pozorování za určité časové období ve specifických intervalech. Framework k tomuto účelu používá algoritmus {\it analýzy singulárního spektra (SSA)}. SSA funguje tak, že rozkládá časovou řadu na sadu hlavních komponent. Tyto složky lze interpretovat jako části signálu, které odpovídají trendům, šumu, sezónnosti a mnoha dalším faktorům. Poté jsou tyto komponenty rekonstruovány a použity k předpovědi hodnot někdy v budoucnu.
+
+\pagebreak
 
 \section{.NET MAUI}
 Pro vytvoření klientské aplikace se správou a monitorováním připojených topení bude použita knihovna .NET MAUI (Multi-platform App User Interface). Dle \cite{maui} se jedná o multiplatformní knihovnu od společnosti Microsoft, která je nástupcem aktuálního frameworku Xamarin.Forms. Umožňuje vytváření nativních mobilních a desktopových aplikací s použitím jazyků C\# a XAML podporovaný operačními systémy Android, iOS, macOS a Windows. Výhodou je tedy využití jednoho sdíleného zdrojového kódu v jednom projektu pro všechny platformy. Navíc v případě potřeby umožňuje přidání platformě specifického kódu ve specifických podadresářích, nebo pomocí direktiv překladače.
@@ -148,13 +166,13 @@ Obrázek \ref{mauiArchitectureDiagra} zobrazuje architekturu aplikace používaj
 
 \begin{figure}[hbt]
 \centering
-\includegraphics[width=0.75\textwidth]{obrazky-figures/maui-architecture.png}
+\includegraphics[width=0.7\textwidth]{obrazky-figures/maui-architecture.png}
 \caption{Diagram architektury .NET MAUI}
 \label{mauiArchitectureDiagra}
 \end{figure}
 
 \subsection{XAML}
-Dle \cite{xaml} je XAML ({\it eXtensible Application Markup Language}) jazyk založený na XML, který je alternativou k programování kódem, kdy jsou vytvářeny instance objektů organizováné v hierarchiích. Umožňuje definovat uživatelská rozhraní aplikací pomocí značek. XAML není vyžadován v aplikaci .NET MAUI, ale je to doporučený přístup k vývoji uživatelského rozhraní, protože je často stručnější, vizuálně koherentnější a má podporu nástrojů v IDE. XAML se také dobře hodí pro použití se vzorem {\it Model-View-ViewModel (MVVM)}, kde XAML definuje pohled, který je propojen s kódem viewmodelu v C# prostřednictvím datových vazeb.
+Dle \cite{xaml} je XAML ({\it eXtensible Application Markup Language}) jazyk založený na XML, který je alternativou k programování kódem, kdy jsou vytvářeny instance objektů organizováné v hierarchiích. Umožňuje definovat uživatelská rozhraní aplikací pomocí značek. XAML není vyžadován v aplikaci .NET MAUI, ale je to doporučený přístup k vývoji uživatelského rozhraní, protože je často stručnější, vizuálně koherentnější a má podporu nástrojů v IDE. XAML se také dobře hodí pro použití se vzorem {\it Model-View-ViewModel (MVVM)}, kde XAML definuje pohled, který je propojen s kódem viewmodelu v C\# prostřednictvím datových vazeb.
 
 \subsection{Model-View-ViewModel}
 Návrhový vzor Model-View-ViewModel (MVVM) dle \cite{mvvm} vynucuje oddělení mezi třemi softwarovými vrstvami – uživatelským rozhraním, nazývaným pohled (view), podkladovými daty, nazývanými model, a prostředníkem mezi pohledem a modelem, nazývaným viewmodel. Pohled a viewmodel jsou často propojeny prostřednictvím datových vazeb definovaných v XAML, kde je vlastnost {\it BindingContext} obvykle instancí daného viewmodelu.
