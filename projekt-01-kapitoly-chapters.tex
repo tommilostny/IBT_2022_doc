@@ -1,0 +1,258 @@
+% Tento soubor nahraďte vlastním souborem s obsahem práce.
+%=========================================================================
+% Autoři: Michal Bidlo, Bohuslav Křena, Jaroslav Dytrych, Petr Veigend a Adam Herout 2019
+\chapter{Úvod}
+
+S nástupem popularity chytré domácnosti a rozšířené možnosti veškerá připojená zařízení jednoduše ovládat i na dálku s požitím mobilního telefonu byly rozšířeny i způsoby domácího vytápění v podobě chytrých termostatů. V současné době jsou tato řešení ovšem často velmi nákladné a většina z nich je pouze manuálně programovatelná z aplikace od výrobce a nemají podporu strojového učení, kdy se zařízení automaticky přizpůsobuje dané místnosti. Konvenční termostaty bývají také často omezeny na existující infrastrukturu ústředního vytápění se zdrojem tepla a rozvody.
+
+Moje domácnost například tuto infrastrukturu vůbec nemá. Místo toho je v každé místnosti umístěn samostatný přímotopný konvektor připojený do zásuvky. Tyto jednotky mají výhodu ve snadné instalaci i úsporném provozu, ale nelze přímo nastavit požadovanou teplotu v místnosti, tudíž může docházet k přetápění. Navíc je do ovládání chytrým centrálním termostatem není snadné zapojit.
+
+Cílem této práce je tedy navrhnout prototyp systému chytré domácnosti zaměřené na vytvoření sítě topných jednotek, které bude připojením k Wi-Fi možné vzdáleně monitorovat a ovládat. Pro tento účel bylo zvoleno relé Shelly 1PM, které umožňuje přímotop připojit do sítě Wi-Fi, sledovat jeho spotřebu, a navíc s pomocí teplotního čidla měřit teplotu v okolí. Toto relé tedy zajistí potřebnou funkcionalitu za nízkou cenu za jednotku. Pro centrální řízení této sítě bude použit minipočítač Raspberry Pi 4 Model B. Pro pohodlí uživatele bude také vytvořena mobilní aplikace, ve které bude možné nakonfigurovat nastavení jednotlivých topení i jejich další monitorování.
+
+Toto řešení by tedy mělo v existující domácnosti používající „hloupé“ přímotopné konvektory zajistit cenově dostupný systém, který by měl zvýšit uživatelské pohodlí i budoucí energetická úspora.
+
+\chapter{(Teorie) Analýza systému vytápění}
+\label{teorie}
+Tato kapitola shrnuje existující řešení, které byly inspirací při vytváření řešení.
+
+\section{Elektrické vytápění}
+Dle \cite{electricHeating} elektrické vytápění je proces, při kterém se elektrická energie přeměňuje na tepelnou energii. Běžnými aplikacemi jsou prostorové vytápění, ohřev vody a průmyslové procesy. Elektrický ohřívač je elektrické zařízení, které přeměňuje elektrický proud na teplo. Topné těleso uvnitř každého elektrického ohřívače je elektrický odpor a funguje na principu Jouleova ohřevu: elektrický proud procházející rezistorem přemění tuto elektrickou energii na tepelnou energii.
+
+Základním rozdělením je vytápění samotného prostoru (infraohřívače, konvekční ohřívače, teplovzdušné ventilátory, akumulační kamna, elektrické podlahové vytápění, systém vytápění osvětlením a tepelná čerpadla) a vytápění kapalinou (ponorné ohřívače, cirkulační potrubní ohřívače a ohřívače elektrod).
+
+Pro tuto práci byl použit nástěnný přímotopný konvektor \textbf{AEG WKL 1003 U}. Jedná se tedy o konvekční ohřívač, což je dle \cite{convectionHeater} typ ohřívače, který využívá k ohřevu a cirkulaci vzduchu konvekční proudy. Tyto proudy cirkulují v celém těle spotřebiče a přes jeho topné těleso. Tento proces na principu vedení tepla ohřívá vzduch, snižuje jeho hustotu oproti chladnějšímu vzduchu a způsobuje jeho stoupání. Jak molekuly zahřátého vzduchu stoupají, vytlačují molekuly chladnějšího vzduchu dolů směrem k topnému zařízení. Vytlačený chladný vzduch se v důsledku toho ohřeje, tím je snížena jeho hustota, stoupá vzhůru směrem ke stropu a cyklus se opakuje.
+
+\begin{figure}[hbt]
+\centering
+\includegraphics[width=0.4\textwidth]{obrazky-figures/aeg-wkl-1003u.png}
+\caption{Fotografie instalovaného přímotopného konvektoru AEG WKL 1003 U}
+\end{figure}
+
+
+Konvektor AEG WKL 1003 U pracuje s pevným příkonem 1000 W, který spíná vestavěným termostatem s nastavením teploty výběrem z úrovní 1 až 7, protizámrazovou ochranu na 6 °C a volbu MAX, která by měla vytopit místnost až na 30 °C. Na pravé straně má také fyzický spínač zapnuto/vypnuto.
+
+
+\section{Chytrý termostat Nest Learning}
+Zajímavým zástupcem chytrých termostatů je Nest Learning Thermostat vyvíjený výrobcem Nest Labs. Dle \cite{nest} se jedná o programovatelný a samoučící se Wi-Fi termostat, který optimalizuje vytápění a chlazení domácností i podniků za účelem úspory energie. Zařízení je založeno na algoritmu strojového učení, kdy první týdny musí uživatelé regulovat termostat, aby poskytli referenční soubor dat. Termostat se pak může naučit rozvrh lidí, na jakou teplotu jsou zvyklí a kdy. Interagovat s termostatem lze klikáním a posouvání jeho ovládacího kolečka, anebo mobilní aplikací Google Home. Pomocí vestavěných senzorů a umístění telefonů se může přepnout do režimu úspory energie, když si uvědomí, že nikdo není doma.
+
+Termostaty Nest jsou kompatibilní s většinou standardních systémů HVAC (topení, větrání a klimatizace), které využívají ústřední vytápění a chlazení. Do prostředí s přímotopnými konvektory tedy nasadit nelze.
+
+\begin{figure}[hbt]
+\centering
+\includegraphics[width=0.4\textwidth]{obrazky-figures/nest.png}
+\caption{Přední obrazovka termostatu Nest}
+\end{figure}
+
+\pagebreak
+
+\section{Chytré elektrické přímotopy}
+Na světovém trhu ovšem existují i řešení v podobě elektrických topení se zabudovanou Wi-Fi (například Nedis WIFIHTPL20FWT \cite{nedis}, který umožní vzdálené ovládání a programování pomocí aplikace Nedis SmartLife, a také podporu Amazon Alexa a Google Assistant). Toto řešení může být postačující, zásadně se však ale neodlišuje od tradičních přímotopných konvektorů a výměna jednotek v existující instalaci tedy může být zbytečně nákladná.
+
+\begin{figure}[hbt]
+\centering
+\includegraphics[width=0.6\textwidth]{obrazky-figures/nedis.png}
+\caption{Wi-Fi přímotopný konvektor Nedis WIFIHTPL20FWT}
+\end{figure}
+
+
+\section{Tuya Wi-Fi termostat}
+Posledním zajímavým produktem ve světě je Tuya Wi-Fi termostat \cite{tuyaterm}, který by svou formou řešení byl z předchozích zmíněný nejvhodnější volbou do prostředí s existujícími přímotopnými konvektory, které bychom chtěli připojit k Wi-Fi a vzdáleně je ovládat a monitorivat. Podporuje scény, časování a programování v aplikacích Tuya/Smart Life, a také Amazon Alexa a Google Assistant.
+
+\begin{figure}[hbt]
+\centering
+\includegraphics[width=0.56\textwidth]{obrazky-figures/tuyaterm.png}
+\caption{Tuya Wi-Fi termostat}
+\end{figure}
+
+
+\chapter{Návrh systému}
+Tato kapitola se zabývá návrhem softwarové i hardwarové části a nastíní technologie použité pro vytvoření navrženého řešení.
+
+\section{Shelly 1PM}
+Shelly 1PM (série 1 + {\it power measurement}) je Wi-Fi relé, které bylo zvoleno pro svou nízkou cenu a širokou funkcionalitu. Umožňuje spínání zásuvky, do které je zapojen přímotop, monitorování její spotřeby ve Wattech a s pomocí přídavného modulu měřit i teplotu v místnosti. Po zapojení hardware je ve vestavěném webovém rozhraní možné toto relé připojit k domácí Wi-Fi síti a mimo jiné mu například přiřazení statické IP adresy, nastavení zdrojového napětí 110 nebo 220 V, nastavení časové zóny nebo aktualizace firmware \cite{shelly_1pm}.
+
+Pro komunikaci se Shelly 1PM nabízí výrobce kompatibilitu s populárními platformami Android, iOS, Amazon Alexa, Google Assistant a domácí automatizační servery s použitím protokolů MQTT, CoAP a REST API \cite{shelly_1pm}. V této práci bude později využita komunikace přes rozhraní REST.
+
+Přídavný modul teplotního senzoru \cite{shelly_tempaddon} doplňuje základní funkcionalitu relé Shelly 1 nebo 1PM o získání teploty naměřené v místnosti (dle nastavení ve °C nebo °F). K tomuto modulu je tedy ještě potřeba připojit samotný senzor DS18B20 \cite{shelly_tempsensor}, které lze připojit dokonce až 3, nebo DHT22. Pro tento projekt byl zvolen DS18B20 a bude se pracovat s teplotou ve °C.
+
+\begin{figure}[hbt]
+\centering
+\includegraphics[width=0.33\linewidth]{obrazky-figures/shelly-tempaddon.png}
+\includegraphics[width=0.33\linewidth]{obrazky-figures/shelly-tempsensor.png}
+\caption{Přídavný modul pro Shelly 1/1PM a teplotní senzor DS18B20}
+\end{figure}
+
+V této práci bude použito následující zapojení, kdy relé Shelly 1PM bude vloženo do prodlužovacího kabelu, skrze který bude topení připojeno k zásuvce. Tento postup byl zvolen pro zjednodušení prvotní testovací instalace. Zařízení je jinak možné instalovat více způsoby, například přímo do zásuvky ve zdi.
+
+\begin{figure}[hbt]
+\centering
+\includegraphics{obrazky-figures/shelly-diagram.png}
+\caption{Diagram použitého zapojení relé Shelly 1PM}
+\end{figure}
+
+\begin{figure}[hbt]
+\centering
+\includegraphics[width=0.44\linewidth]{obrazky-figures/shelly-photo1.png}
+\includegraphics[width=0.44\linewidth]{obrazky-figures/shelly-photo2.png}
+\caption{Fotografie instalovaného Shelly 1PM s modulem teplotního senzoru a DS18B20 umístěný v blízkosti ovládaného přímotopu}
+\end{figure}
+
+\section{Raspberry Pi 4 Model B}
+Jako centrální prvek, který bude komunikovat s jednotlivými topeními připojených pomocí relé Shelly, bylo zvoleno Raspberry Pi 4 Model B ve variantě s RAM 2 GB LPDDR4 (další možné varianty jsou s 1, 4 nebo 8 GB). Dle \cite{raspberry_pi} se jedná o nejnovější a nejvýkonnější model z oblíbené řady jednodeskových počítačů Raspberry Pi. Mezi jeho klíčové vlastnosti patří výkonný 64bitový čtyřjádrový procesor, podpora dvou displejů v rozlišení až 4K prostřednictvím dvojice micro-HDMI portů, hardwarové dekódování videa až 4K 60 FPS, dvoupásmová bezdrátová LAN 2,4/5,0 GHz, Bluetooth 5.0, Gigabit Ethernet, USB 3.0 a napájení 5V DC přes USB-C, GPIO header, nebo PoE ({\it Power over Ethernet}).
+
+Zajímavý pro použití v této práci je právě svým procesorem Broadcom BCM2711, což je 64bitové čtyřjádrové SoC ({\it System on Chip}) Cortex-A72 běžící na taktovací frekvenci 1,5 GHz \cite{raspberry_pi}. Ten by tedy pro správu připojených topení a zpracování předpovědí strojovým učením měl zajistit optimální výkon. Architektura ARM v8 je také podporována virtuálním běhovým prostědím CLR ({\it Common Language Runtime}), pod kterým bude běžet software napsaný v jazyce C\#.
+
+\begin{figure}[hbt]
+\centering
+\includegraphics[width=0.66\textwidth]{obrazky-figures/raspberrypi.png}
+\caption{Raspberry Pi 4 Model B}
+\end{figure}
+
+\section{C\# a platforma .NET}
+Dle \cite{c_sharp} C\# je moderní objektově orientovaný a staticky typovaný programovací jazyk vytvořený společností Microsoft. Umožňuje vytvářet mnoho typů bezpečných a robustních aplikací, které běží na platformě .NET. Má své kořeny v rodině jazyků typu C a jeho syntaxe je založena na jazycích C++, Java a JavaScript. Objektový model jazyka C\# je komponentně orientovaný, což podporuje programování nezávislých a vyměnitelných modulů.
+
+Tento jazyk také obsahuje řadu funkcí, které napomáhají vytváření robustních a odolných aplikací:
+
+\begin{itemize}
+    \item {\it Garbage Collection} automaticky uvolňuje alokovanou paměť obsazenou nedostupnými objekty
+    \item {\it Nullable types} (typy s možností nabytí hodnoty null) chrání před proměnnými, které se neodkazují na alokované objekty.
+    \item {\it Zpracování výjimek} poskytuje strukturovaný a rozšiřitelný přístup k detekci chyb a obnově chodu programu.
+    \item {\it Lambda výrazy} podporují techniky funkcionálního programování.
+    \item Syntaxe {\it LINQ (Language Integrated Query)} vytváří společný vzor pro práci s daty z jakéhokoliv zdroje.
+    \item Jazyková podpora pro asynchronní operace poskytuje syntaxi pro vytváření distribuovaných systémů.
+    \item Má jednotný typový systém, kde všechny typy, včetně primitivních typů jako jsou int a double, dědí z jediného kořenového typu object. Všechny typy tedy sdílí sadu běžných operací (například metoda ToString). Hodnoty jakéhokoliv typu mohou být uloženy, přemisťovány a manipulovány konzistentním způsobem. Podporuje uživatelsky definované referenční (třídy a záznamy) i hodnotové typy (struktury). Třídy kolekcí navíc obsahují iterátory, které umožňují definovat vlastní chování v klientském kódu (například v cyklech foreach).
+\end{itemize}
+
+Programy v jazyce C\# ve virtuálním systému zvaném {\it Common Language Runtime} (CLR). CLR je implementace {\it common language infrastructure} (CLI), mezinárodního standardu od společnosti Microsoft. Zdrojový kód napsaný v C\# je kompilován do {\it intermediate language} (IL), který odpovídá specifikaci CLI. Kód IL a prostředky, jako jsou řetězce a bitmapy, jsou uloženy v souborech sestavení obvykle s příponou .dll, který také obsahuje manifest s dalšími informacemi, jako jsou typy, verze programu nebo kultura (pro vícejazyčné aplikace). Když je program v C\# spuštěn, sestavení se načte do CLR, které provádí Just-In-Time kompilaci pro převod kódu z IL do nativních strojových instrukcí.
+
+Jazyková interoperabilita je klíčovou vlastností .NET. IL kód vytvořený kompilátorem C\# odpovídá {\it Common Type Specification} (CTS). Může tedy interagovat s kódem, který byl vygenerován z .NET verzí jazyků F\#, Visual Basic, C++ a více než 20 dalších jazyků kompatibilních s CTS. Jedno sestavení může obsahovat více modulů napsaných v různých jazycích pod platformou .NET. Typy se mohou navzájem odkazovat, jako by byly napsány ve stejném jazyce.
+
+Kromě běhových služeb zahrnuje .NET také rozsáhlé knihovny. Tyto knihovny podporují mnoho různých pracovních zátěží. Jsou uspořádány do jmenných prostorů, které poskytují širokou škálu užitečných funkcí. Knihovny zahrnují vše od vstupu a výstupu souborů přes manipulaci s řetězci až po analýzu XML, rozhraní webových aplikací až po ovládací prvky knihoven jako je Windows Forms. Typická aplikace v jazyce C\# široce využívá knihovnu tříd .NET ke zpracování běžných operací (například práce se soubory).
+
+
+\section{ASP.NET Core Web API}
+ASP.NET Core podporuje vytváření webových aplikačních rozhraní pomocí {\it controllerů} dle návrhového vzoru MVC nebo pomocí minimálních API. V této práci je použit přístup {\it minimálního API}.
+
+
+
+\section{ML.NET}
+
+
+
+\section{.NET MAUI}
+Pro vytvoření klientské aplikace se správou a monitorováním připojených topení bude použita knihovna .NET MAUI (Multi-platform App User Interface). Dle \cite{maui} se jedná o multiplatformní knihovnu od společnosti Microsoft, která je nástupcem aktuálního frameworku Xamarin.Forms. Umožňuje vytváření nativních mobilních a desktopových aplikací s použitím jazyků C\# a XAML podporovaný operačními systémy Android, iOS, macOS a Windows. Výhodou je tedy využití jednoho sdíleného zdrojového kódu v jednom projektu pro všechny platformy. Navíc v případě potřeby umožňuje přidání platformě specifického kódu ve specifických podadresářích, nebo pomocí direktiv překladače.
+
+.NET 6 poskytuje řadu platformě specifických frameworků pro vytváření aplikací: .NET pro Android, .NET pro iOS, .NET pro macOS a knihovnu Windows UI 3 (WinUI 3). Všechny tyto frameworky mají přístup ke stejné knihovně základních tříd .NET 6 (BCL). Tato knihovna abstrahuje podrobnosti o základní platformě. Verze pro Android, iOS a macOS využívají implementaci .NET runtime Mono, zatímco verze pro Windows používá Win32.
+
+Obrázek \ref{mauiArchitectureDiagra} zobrazuje architekturu aplikace používající .NET MAUI. Klientský aplikační kód typicky interaguje s .NET MAUI API (1), které poté přímo volá funkce API nativní platformy (3). Pokud je vyžadováno, funkce nativní platformy může klientský kód volat i přímo (2) \cite{maui}.
+
+\begin{figure}[hbt]
+\centering
+\includegraphics[width=0.75\textwidth]{obrazky-figures/maui-architecture.png}
+\caption{Diagram architektury .NET MAUI}
+\label{mauiArchitectureDiagra}
+\end{figure}
+
+\subsection{XAML}
+Dle \cite{xaml} je XAML ({\it eXtensible Application Markup Language}) jazyk založený na XML, který je alternativou k programování kódem, kdy jsou vytvářeny instance objektů organizováné v hierarchiích. Umožňuje definovat uživatelská rozhraní aplikací pomocí značek. XAML není vyžadován v aplikaci .NET MAUI, ale je to doporučený přístup k vývoji uživatelského rozhraní, protože je často stručnější, vizuálně koherentnější a má podporu nástrojů v IDE. XAML se také dobře hodí pro použití se vzorem {\it Model-View-ViewModel (MVVM)}, kde XAML definuje pohled, který je propojen s kódem viewmodelu v C# prostřednictvím datových vazeb.
+
+\subsection{Model-View-ViewModel}
+Návrhový vzor Model-View-ViewModel (MVVM) dle \cite{mvvm} vynucuje oddělení mezi třemi softwarovými vrstvami – uživatelským rozhraním, nazývaným pohled (view), podkladovými daty, nazývanými model, a prostředníkem mezi pohledem a modelem, nazývaným viewmodel. Pohled a viewmodel jsou často propojeny prostřednictvím datových vazeb definovaných v XAML, kde je vlastnost {\it BindingContext} obvykle instancí daného viewmodelu.
+
+%\subsection{Uživatelské rozhraní}
+
+
+\section{InfluxDB}
+Pro ukládání dat o připojených topeních byla zvolen databázový software {\it InfluxDB} vytvořený společností InfluxData. Dle \cite{influx_gh} je to open-source platforma pracující s časovými řadami. To zahrnuje rozhraní API pro ukládání a dotazování nad daty, jejich zpracování pro účely monitorování a upozornění, uživatelské panely a vizualizace dat v přehledném rozgraní pod \url{http://localhost:8086/} (případně po nasazení na Raspberry Pi dostupné pod jeho IP adresou místo rozhraní localhost).
+
+Pro zápis a dotazování nad daty nebo jakékoliv používání rozhraní API, je nejprve nutné vytvořit uživatelské přihlašovací údaje, organizaci a segment. Vše v InfluxDB je organizováno pod konceptem organizace. API je navrženo jako multi-tenant (sdílené skupinou uživatelů). Segmenty představují místo, kde jsou ukládány data časové řady.
+
+Dotazy na tuto databázi využívají jazyka {\it Flux}. Dle \cite{flux} je to open-source funkcionální datový skriptovací jazyk určený pro dotazování, analýzu a práci s daty. Flux podporuje více typů zdrojů dat, včetně databází časových řad (jako je InfluxDB), relační SQL databáze (jako MySQL a PostgreSQL) a CSV. Flux sjednocuje kód pro dotazování, zpracování a zápis dat do jediné syntaxe.
+
+\begin{figure}[hbt]
+\centering
+\includegraphics[width=0.75\textwidth]{obrazky-figures/flux-example.png}
+\caption{Příklad dotazu pro čtení z databáze InfluxDB v jazyce Flux \cite{flux_gs}}
+\end{figure}
+
+%\noindent Více o způsobech používání funkcí API InfluxDB pro čtení a zápis v kapitole \ref{implementace}.
+
+
+\section{Nginx}
+Dle \cite{nginx_wiki} Nginx je softwarový webový server s managementem zátěže a reverzní proxy s otevřeným zdrojovým kódem. Pracuje s protokoly HTTP (i HTTPS), SMTP, POP3, IMAP a SSL. Zaměřuje se především na vysoký výkon a nízké nároky na paměť.
+
+V projektu je Nginx použit dle \cite{nginx_asp} jako reverzní proxy server, který naslouchá na standardním portu 80 pro HTTP a přeposílá dotazy na ASP.NET Core server běžící na rozhraní localhost na portu 5232.
+
+\chapter{Implementace}
+\label{implementace}
+
+Tato kapitola se zabývá detaily implementace systému {\it SmartHeater} vytvořeného v rámci této práce, který je nasazen jako řídící software na dříve zmíněném minipočítači Raspberry Pi. Uživateli také umožní správu a monitorování sítě chytrých topení v jednoduché vlastní mobilní aplikaci.
+
+\section{Architektura řešení}
+Řešení zdrojového kódu systému SmartHeater je rozděleno na 4 hlavní části:
+\begin{itemize}
+    \item \textbf{SmartHeater.Hub}: řídící hub zajišťující serverovou část pod ASP.NET Core Web API a periodické řízení a monitorování registrovaných ovladačů topení.
+    \item \textbf{SmartHeater.ML}: knihovna tříd nad frameworkem ML.NET pro strojové učení.
+    \item \textbf{SmartHeater.Maui}: klientská multiplatformní aplikace nad .NET MAUI.
+    \item \textbf{SmartHeater.Shared}: knihovna tříd obsahující sdílené prostředky použité v ostatních částech systému.
+\end{itemize}
+
+\begin{figure}[hbt]
+\centering
+\includegraphics[width=0.75\textwidth]{obrazky-figures/smartheater-architecture.png}
+\caption{Graf závislostí mezi projekty řešení}
+\end{figure}
+
+\section{Komunikace klient-server a sdílený kód}
+Models
+
+Enums, Static
+
+
+\section{Řídící hub}
+Centrálním bodem této práce je software běžící na Raspberry Pi, které zde má roli hlavního řídícího hubu. Jádro projektu SmartHeater.Hub je v souboru Program.cs… Zajištění vytrénovaného modelu ML, Dependency Injection a registrace služeb, debugovací prostředí Swagger, scheduler a plánování invocables, REST endpointy.
+
+https://shelly-api-docs.shelly.cloud/gen1/#shelly1-pm-overview
+
+Rozhraní pro registrované služby a jedna z možných implementací se v projektu nacházejí ve jmenném prostoru SmartHeater.Hub.Services. 
+
+Invocables
+
+
+\section{Předpověď strojovým učením}
+Generování
+
+Data
+
+Algoritmus
+
+
+\section{Mobilní aplikace}
+Maui, Platforms
+
+MauiProgram
+
+Shell
+
+Pages, Views, ViewModels
+
+Providers
+
+Converters, Helpers
+
+
+\chapter{Testování}
+
+\section{Získávání dat}
+
+\section{Sledování chování původního termostatu}
+
+\section{Sledování systému ovládaného strojovým učením}
+
+
+\chapter{Závěr}
+\label{zaver}
+
+Integrace do populární platformy typu Home Assistant, Telegram Bot, přidat krom vytápění i chlazení. Možné rozšíření podpory dalších zařízení krom Shelly 1PM, například dříve zmíněnými chytrými přímotopy.
+
+%===============================================================================
