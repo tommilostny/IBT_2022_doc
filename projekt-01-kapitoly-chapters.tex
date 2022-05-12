@@ -201,13 +201,13 @@ Dle \cite{nginx_wiki} Nginx je softwarový webový server s managementem zátě�
 
 V projektu je Nginx použit dle \cite{nginx_asp} jako reverzní proxy server, který naslouchá na standardním portu 80 pro HTTP a přeposílá dotazy na ASP.NET Core server běžící na rozhraní localhost na portu 5232.
 
-\chapter{Implementace}
+\chapter{Implementace a testování}
 \label{implementace}
 
-Tato kapitola se zabývá detaily implementace systému {\it SmartHeater} vytvořeného v rámci této práce, který je nasazen jako řídící software na dříve zmíněném minipočítači Raspberry Pi. Uživateli také umožní správu a monitorování sítě chytrých topení v jednoduché vlastní mobilní aplikaci.
+Tato kapitola se zabývá detaily implementace systému {\it SmartHeater} vytvořeného v rámci této práce, který je nasazen jako řídící software na dříve zmíněném minipočítači Raspberry Pi. Uživateli také umožní správu a monitorování sítě chytrých topení v jednoduché vlastní mobilní aplikaci. Závěr této kapitoly se zabývá testováním výsleků získaných během sběru dat implementovaným systémem.
 
 \section{Architektura řešení}
-Řešení zdrojového kódu systému SmartHeater je rozděleno na 4 hlavní části:
+Kód řešení ({\it SmartHeater}) je rozdělen na klientskou, serverovou a sdílenou část. Projekty se zdrojovým kódem řešení systému jsou rozděleny na 4 části:
 \begin{itemize}
     \item \textbf{SmartHeater.Hub}: řídící hub zajišťující serverovou část pod ASP.NET Core Web API a periodické řízení a monitorování registrovaných ovladačů topení.
     \item \textbf{SmartHeater.ML}: knihovna tříd nad frameworkem ML.NET pro strojové učení.
@@ -221,23 +221,81 @@ Tato kapitola se zabývá detaily implementace systému {\it SmartHeater} vytvo�
 \caption{Graf závislostí mezi projekty řešení}
 \end{figure}
 
-\section{Komunikace klient-server a sdílený kód}
+\pagebreak
+
+\section{Řídící hub}
+Centrálním bodem této práce je software běžící na Raspberry Pi, které zde má roli hlavního řídícího hubu. Cílem této části je správa, ovládání a monitorování připojených topení a poskytnutí rozhraní webového API pro komunikaci s klientskou aplikací. Jádrem je projekt {\it SmartHeater.Hub}. V souboru {\it Program.cs} má nakonfigurováno zajištění vytrénování modelu ML, registraci služeb dále poskytnuté DI kontejnerem, plánovač poskytnutý knihovnou {\it Coravel} \cite{coravel}, který periodicky spuští kód tříd ze složky {\it Invocables}, debugovací prostředí {\it Swagger} a HTTP koncové body poskytovaného webového API.
+
+\begin{figure}[hbt]
+\includegraphics[width=\textwidth]{obrazky-figures/swagger.png}
+\caption{Prostředí swagger pro ladění koncových bodů webového API}
+\end{figure}
+
+Rozhraní pro registrované služby a pro každé z nich jedna z možných implementací se v projektu nacházejí ve jmenném prostoru {\it SmartHeater.Hub.Services}. Způsob práce s využitím rozhraní byl zvolen z důvodu možnosti budoucí rozšiřitelnosti a nahrazení aktuální implementace bez nutnosti přepisování kódu, který rozhraní využívá.
+
+\begin{figure}[hbt]
+\centering
+\includegraphics[width=0.69\textwidth]{obrazky-figures/code-hubservices.png}
+\caption{Registrace implementací rozhraní služeb v souboru {\it Program.cs}, které bude DI kontejner poskytovat v rámci aplikace}
+\end{figure}
+
+\subsection{Data o počasí}
+Pro sledování vlivu počasí na teplotu uvnitř v místnosti bylo do projektu přidáno rozhraní {\it IWeatherService}, které zprostředkovává metody pro čtení teploty ve °C i °F (v této práci se primárně pracuje se °C). Pro pohodlí uživatele bylo také přidáno rozhraní {\it ICoordinatesService}, které umožňuje automatické zjištění polohu zařízení, která bude použita k získání dat o počasí z daného místa.
+
+Implementace ve třídě {\it IpApiService} k tomuto využívá webovou službu \url{https://ipapi.co/}, která vrací souřadnice dle veřejné IP adresy zařízení. Tyto souřadnice jsou uloženy v poli, aby se zamezilo zbytečnému síťovému provozu. Pracuje se zde tedy s předpokladem, že zařízení, na kterém software poběží, typu Raspberry Pi bude instalováno na jednom místě a nebude měnit svou polohu.
+
+Samotné rozhraní pro získávání dat o počasí implementuje třída {\it OpenWeatherService}. Jako zdroj používá volně dostupné webové API \textbf{OpenWeather}, které pro svůj provoz vyžaduje pouze registraci a vytvoření API klíče. Získaný klíč je následně uložen do souboru {\it appsettings.json}. Tento soubor obsahuje konfiguraci pro ASP.NET projekt, ze které lze snadno číst pomocí vestavěného rozhraní {\it IConfiguration}.
+
+\begin{figure}[hbt]
+\includegraphics[width=1.05\textwidth]{obrazky-figures/code-openweather-read.png}
+\caption{Metoda {\it ReadCelsiusAsync} pro získání souřadnic aktuální polohy zařízení volá službu {\it ICoordinatesService}, které použije v HTTP požadavku na službu {\it OpenWeather}. Získaná data ve formátu JSON jsou deserializována do privátní třídy, ze které se následně získá teplota v °C a vrací se jako hodnota typu double. V případě chyby je vrácena hodnota null.}
+\end{figure}
+
+\pagebreak
+
+\subsection{Databázové rozhraní}
+Rozhraní {\it IDatabaseService} zprostředkovává připojení k databázi. Obsahuje metody pro zápis měření (jako parametry vyžaduje záznam stavu topení a počasí) a čtení historie (vrací kolekci databázových záznamů pro konkrétní model topení ve vybraném období a z vybraného sloupce tabulky v databázi).
+
+Implementace ve třídě {\it InfluxDbService} využívá knihovnu {\it InfluxDB.Client} poskytující třídy pro práci s databázovým systémem InfluxDB. Podobně jako v předchozí podkapitole používá {\it InfluxDbService} konfiguraci uloženou v souboru {\it appsettings.json}, kde má uložený název organizace a segmentu, které je třeba nastavit v databázi InfluxDB po její instalaci, a databázovým systémem vygenerovaný přístupový token.
+
+\begin{figure}[hbt]
+\includegraphics[width=0.68\textwidth]{obrazky-figures/code-influx-write.png}
+\caption{Metoda {\it WriteMeasurement} zapisuje záznam o měření stavu topení a počasí vytvořením objektu s daty s položkami daného měření a časovou značkou. Klient InfluxDB obsahuje zapisovací API, které daný bod zapíše do databáze dle nakonfigurované organizace a segmentu.}
+\end{figure}
+
+\begin{figure}[hbt]
+\includegraphics[width=1.05\textwidth]{obrazky-figures/code-influx-read.png}
+\caption{Část metody {\it ReadHistoryAsync}, kde je vytvořen dotaz v jazyce Flux, kterým získá data ze zadaného časového období a vybraného sloupce databázové tabulky pro zvolené topení, které je filtrované dle své IP adresy. Získané záznamy jsou navráceny v kolekci s objekty typu {\it DbRecordModel}. Jedná se o vlastní model, který je dále využíván v rámci implementace mobilní aplikace. Obsahuje hodnotu měření typu float a časové razítko.}
+\end{figure}
+
+\pagebreak
+
+\subsection{Správa topení}
+Rozhraní {\it IHeatersRepository} poskytuje metody pro správu sítě topení. Umožňuje získání informací o registrované jednotce i možnost získání detailu s měřením teploty v místnosti a spotřeby energie, čtení i zápis kolekce registrovaných jednotek, vkládání, aktualizace a mazání jednotlivých topení, a získání služby implementující rozhraní {\it IHeaterControlService} pro ovládání daného topení.
+ 
+Implementace ve třídě {\it HeatersRepository} pracuje s kolekcí topení
+
+\begin{figure}[hbt]
+\centering
+\includegraphics[height=2.85cm]{obrazky-figures/code-heaterslistmodel.png}
+\includegraphics[height=2.85cm]{obrazky-figures/code-heatersjson.png}
+\caption{{\it HeaterListModel} představující model registrovaného topení a reprezentace jejich kolekce ve formátu JSON}
+\end{figure}
+
+https://shelly-api-docs.shelly.cloud/gen1/#shelly1-pm-overview
+
+
+\subsection{Komunikace klient-server}
 Models
 
 Enums, Static
 
 
-\section{Řídící hub}
-Centrálním bodem této práce je software běžící na Raspberry Pi, které zde má roli hlavního řídícího hubu. Jádro projektu SmartHeater.Hub je v souboru Program.cs… Zajištění vytrénovaného modelu ML, Dependency Injection a registrace služeb, debugovací prostředí Swagger, scheduler a plánování invocables, REST endpointy.
-
-https://shelly-api-docs.shelly.cloud/gen1/#shelly1-pm-overview
-
-Rozhraní pro registrované služby a jedna z možných implementací se v projektu nacházejí ve jmenném prostoru SmartHeater.Hub.Services. 
-
-Invocables
+\subsection{Sběr dat}
+StatsCollectorInvocable, počasíčko, auto získávání polohy, atd.
 
 
-\section{Předpověď strojovým učením}
+\subsection{Předpověď strojovým učením}
 Generování
 
 Data
@@ -258,10 +316,6 @@ Providers
 
 Converters, Helpers
 
-
-\chapter{Testování}
-
-\section{Získávání dat}
 
 \section{Sledování chování původního termostatu}
 
