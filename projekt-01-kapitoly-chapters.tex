@@ -271,16 +271,23 @@ Implementace ve třídě {\it InfluxDbService} využívá knihovnu {\it InfluxDB
 \pagebreak
 
 \subsection{Správa topení}
-Rozhraní {\it IHeatersRepository} poskytuje metody pro správu sítě topení. Umožňuje získání informací o registrované jednotce i možnost získání detailu s měřením teploty v místnosti a spotřeby energie, čtení i zápis kolekce registrovaných jednotek, vkládání, aktualizace a mazání jednotlivých topení, a získání služby implementující rozhraní {\it IHeaterControlService} pro ovládání daného topení.
+Rozhraní {\it IHeatersRepository} poskytuje metody pro správu sítě topení. Umožňuje získání informací o registrované jednotce ({\it GetHeaterAsync}) i možnost získání detailu s měřením teploty v místnosti a spotřeby energie ({\it GetHeaterDetailAsync}), čtení i zápis kolekce registrovaných jednotek ({\it ReadHeatersAsync} a {\it WriteHeatersAsync}), vkládání ({\it InsertAsync}), aktualizace ({\it UpdateAsync}) a mazání jednotlivých topení ({\it DeleteAsync}), a získání služby implementující rozhraní {\it IHeaterControlService} pro ovládání daného topení (pro všechny registrované jednotky {\it GetHeaterServicesAsync}, nebo pro jedno konktrétní registrované topení {\it GetHeaterService} a {\it GetHeaterServiceAsync}).
  
-Implementace ve třídě {\it HeatersRepository} pracuje s kolekcí topení
+Implementace ve třídě {\it HeatersRepository} pracuje s kolekcí topení uloženou v souboru {\it heaters.json} (a pokud neexistuje, vytvoří si jej). Běžně by bylo vhodné je ukládat jako databázové entity, ale použitá databáze InfluxDB pracuje pouze s časovými řadami, pro které je optimalizovaná, a instalovat vedle ní navíc relační databázový server by bylo v případě tohoto projektu zbytečné.
 
 \begin{figure}[hbt]
 \centering
 \includegraphics[height=2.85cm]{obrazky-figures/code-heaterslistmodel.png}
 \includegraphics[height=2.85cm]{obrazky-figures/code-heatersjson.png}
-\caption{{\it HeaterListModel} představující model registrovaného topení a reprezentace jejich kolekce ve formátu JSON}
+\caption{{\it HeaterListModel} představuje model registrovaného topení, jejichž  kolekce je uložena ve formátu JSON. Topení jsou rozlišována dle \textbf{IP adresy}. Dále model obsahuje informace o názvu topení, typu topné jednotky (výčtový typ {\it HeaterTypes} aktuálně obsahuje pouze {\it Shelly1PM}, ale do budoucna je možné řešení rozšířit i o další typy), a nastavené referenční teplotě, kterou se bude ovládající část snažit v místnosti udržet.}
 \end{figure}
+
+\begin{figure}[hbt]
+\includegraphics[width=0.9\textwidth]{obrazky-figures/code-heaterservice-decode.png}
+\caption{Metoda vracející příslušnou implementaci rozhraní {\it IHeaterControlService} dle konkrétního typu topení. Pro neznámý neimplementovaný typ vrací hodnotu null.}
+\end{figure}
+
+{\it IHeaterControlService} je rozhraní ovladače jednoho topení. Obsahuje metody pro zapnutí ({\it TurnOnAsync}) i vypnutí ({\it TurnOffAsync}) jednotky a získání jejího stavu ({\it GetStatusAsync}) v modelu {\it HeaterStatusModel}, který obsahuje IP adresu zařízení, časové razítko měření, označení zda je topní aktuálně zapnuté nebo vypnuté, záznam teploty v místnosti a aktuální spotřebu energie.
 
 https://shelly-api-docs.shelly.cloud/gen1/#shelly1-pm-overview
 
