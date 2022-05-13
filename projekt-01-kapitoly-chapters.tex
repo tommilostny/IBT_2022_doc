@@ -224,11 +224,11 @@ Kód řešení ({\it SmartHeater}) je rozdělen na klientskou, serverovou a sdí
 \pagebreak
 
 \section{Řídící hub}
-Centrálním bodem této práce je software běžící na Raspberry Pi, které zde má roli hlavního řídícího hubu. Cílem této části je správa, ovládání a monitorování připojených topení a poskytnutí rozhraní webového API pro komunikaci s klientskou aplikací. Jádrem je projekt {\it SmartHeater.Hub}. V souboru {\it Program.cs} má nakonfigurováno zajištění vytrénování modelu ML, registraci služeb dále poskytnuté DI kontejnerem, plánovač poskytnutý knihovnou {\it Coravel} \cite{coravel}, který periodicky spuští kód tříd ze složky {\it Invocables}, debugovací prostředí {\it Swagger} a HTTP koncové body poskytovaného webového API.
+Centrálním bodem této práce je software běžící na Raspberry Pi, které zde má roli hlavního řídícího hubu. Cílem této části je správa, ovládání a monitorování připojených topení a poskytnutí rozhraní webového API pro komunikaci s klientskou aplikací. Jádrem je projekt {\it SmartHeater.Hub}. V souboru {\it Program.cs} má nakonfigurováno zajištění vytrénování modelu ML, registraci služeb dále poskytnuté DI kontejnerem, plánovač poskytnutý knihovnou {\it Coravel} \cite{coravel}, který periodicky spuští kód tříd ze složky {\it Invocables}, ladící prostředí {\it Swagger} a HTTP koncové body poskytovaného webového API.
 
 \begin{figure}[hbt]
 \includegraphics[width=\textwidth]{obrazky-figures/swagger.png}
-\caption{Prostředí swagger pro ladění koncových bodů webového API}
+\caption{Prostředí Swagger pro ladění koncových bodů webového API}
 \end{figure}
 
 Rozhraní pro registrované služby a pro každé z nich jedna z možných implementací se v projektu nacházejí ve jmenném prostoru {\it SmartHeater.Hub.Services}. Způsob práce s využitím rozhraní byl zvolen z důvodu možnosti budoucí rozšiřitelnosti a nahrazení aktuální implementace bez nutnosti přepisování kódu, který rozhraní využívá.
@@ -248,7 +248,7 @@ Samotné rozhraní pro získávání dat o počasí implementuje třída {\it Op
 
 \begin{figure}[hbt]
 \includegraphics[width=1.05\textwidth]{obrazky-figures/code-openweather-read.png}
-\caption{Metoda {\it ReadCelsiusAsync} pro získání souřadnic aktuální polohy zařízení volá službu {\it ICoordinatesService}, které použije v HTTP požadavku na službu {\it OpenWeather}. Získaná data ve formátu JSON jsou deserializována do privátní třídy, ze které se následně získá teplota v °C a vrací se jako hodnota typu double. V případě chyby je vrácena hodnota null.}
+\caption{Metoda {\it ReadCelsiusAsync} pro získání souřadnic aktuální polohy zařízení volá službu {\it ICoordinatesService}, které použije v HTTP požadavku na službu {\it OpenWeather}. Získaná data ve formátu JSON jsou deserializována do privátní třídy (zde je důležitá položka {\it ''main''}, jejíž položky jsou mapovány na slovník). Ze slovníku {\it Data} je z položky {\it ''temp''} vyčtena teplota ve °C a vrací se jako hodnota typu double. V případě chyby je vrácena hodnota null.}
 \end{figure}
 
 \pagebreak
@@ -270,37 +270,47 @@ Implementace ve třídě {\it InfluxDbService} využívá knihovnu {\it InfluxDB
 
 \pagebreak
 
-\subsection{Správa topení}
+\subsection{Správa a ovládání topení}
 Rozhraní {\it IHeatersRepository} poskytuje metody pro správu sítě topení. Umožňuje získání informací o registrované jednotce ({\it GetHeaterAsync}) i možnost získání detailu s měřením teploty v místnosti a spotřeby energie ({\it GetHeaterDetailAsync}), čtení i zápis kolekce registrovaných jednotek ({\it ReadHeatersAsync} a {\it WriteHeatersAsync}), vkládání ({\it InsertAsync}), aktualizace ({\it UpdateAsync}) a mazání jednotlivých topení ({\it DeleteAsync}), a získání služby implementující rozhraní {\it IHeaterControlService} pro ovládání daného topení (pro všechny registrované jednotky {\it GetHeaterServicesAsync}, nebo pro jedno konktrétní registrované topení {\it GetHeaterService} a {\it GetHeaterServiceAsync}).
  
 Implementace ve třídě {\it HeatersRepository} pracuje s kolekcí topení uloženou v souboru {\it heaters.json} (a pokud neexistuje, vytvoří si jej). Běžně by bylo vhodné je ukládat jako databázové entity, ale použitá databáze InfluxDB pracuje pouze s časovými řadami, pro které je optimalizovaná, a instalovat vedle ní navíc relační databázový server by bylo v případě tohoto projektu zbytečné.
 
 \begin{figure}[hbt]
 \centering
-\includegraphics[height=2.85cm]{obrazky-figures/code-heaterslistmodel.png}
-\includegraphics[height=2.85cm]{obrazky-figures/code-heatersjson.png}
+\includegraphics[height=2.9cm]{obrazky-figures/code-heaterslistmodel.png}
+\includegraphics[height=2.9cm]{obrazky-figures/code-heatersjson.png}
 \caption{{\it HeaterListModel} představuje model registrovaného topení, jejichž  kolekce je uložena ve formátu JSON. Topení jsou rozlišována dle \textbf{IP adresy}. Dále model obsahuje informace o názvu topení, typu topné jednotky (výčtový typ {\it HeaterTypes} aktuálně obsahuje pouze {\it Shelly1PM}, ale do budoucna je možné řešení rozšířit i o další typy), a nastavené referenční teplotě, kterou se bude ovládající část snažit v místnosti udržet.}
 \end{figure}
 
+{\it IHeaterControlService} je rozhraní ovladače jednoho topení. Obsahuje metody pro zapnutí ({\it TurnOnAsync}) i vypnutí ({\it TurnOffAsync}) jednotky a získání jejího stavu ({\it GetStatusAsync}) v modelu {\it HeaterStatusModel}, který obsahuje IP adresu zařízení, časové razítko měření, označení zda je topení aktuálně zapnuté nebo vypnuté, záznam teploty v místnosti a aktuální spotřebu energie.
+
 \begin{figure}[hbt]
 \includegraphics[width=0.9\textwidth]{obrazky-figures/code-heaterservice-decode.png}
-\caption{Metoda vracející příslušnou implementaci rozhraní {\it IHeaterControlService} dle konkrétního typu topení. Pro neznámý neimplementovaný typ vrací hodnotu null.}
+\caption{Metoda třídy {\it HeatersRepository} vracející příslušnou implementaci rozhraní {\it IHeaterControlService} dle konkrétního typu topení. Pro neznámý neimplementovaný typ vrací hodnotu null.}
 \end{figure}
 
-{\it IHeaterControlService} je rozhraní ovladače jednoho topení. Obsahuje metody pro zapnutí ({\it TurnOnAsync}) i vypnutí ({\it TurnOffAsync}) jednotky a získání jejího stavu ({\it GetStatusAsync}) v modelu {\it HeaterStatusModel}, který obsahuje IP adresu zařízení, časové razítko měření, označení zda je topní aktuálně zapnuté nebo vypnuté, záznam teploty v místnosti a aktuální spotřebu energie.
+V této práci je použito výhradně zařízení Shelly 1PM, pro které je implementace rozhraní {\it IHeaterControlService} vytvořena ve třídě {\it ShellyRelayService}. Ta stojí na komunikaci s vestavěným lokálním REST API \cite{shelly_api}, a proto je vyžadována konfigurace IP adresy zařízení.
 
-https://shelly-api-docs.shelly.cloud/gen1/#shelly1-pm-overview
+\pagebreak
 
+\begin{figure}[hbt]
+\includegraphics[width=0.8\textwidth]{obrazky-figures/code-shellyturns.png}
+\caption{Metody {\it TurnOnAsync} a {\it TurnOffAsync} využívají k zasílání příslušného příkazu zapnout/vypnout HTTP metodu {\it POST} na koncový bod \textbf{/relay/0}, jíž je předán příkaz {\it ''turn'' ''on''} nebo {\it ''off''} v přiloženém obsahu ve formátu {\it application/x-www-form-urlencoded} dle \cite{shelly_http}.}
+\end{figure}
 
-\subsection{Komunikace klient-server}
-Models
+\begin{figure}[hbt]
+\includegraphics[width=0.88\textwidth]{obrazky-figures/code-shelly-status.png}
+\caption{Metoda {\it GetStatusAsync} získá data o stavu zařízení Shelly použitím HTTP metody {\it GET} na koncový bod \textbf{/status}. Obsah odpovědi ve formátu JSON je deserializován do privátní třídy {\it ShellyRelayStatus}, jejíž položky následně dekóduje do objektu typu {\it HeaterStatusModel} voláním pomocných metod.}
+\end{figure}
 
-Enums, Static
+\noindent Třída {\it ShellyRelayStatus} mapuje dle \cite{shelly-api-status} následující položky:
+\begin{itemize}
+    \item {\it ''relays''}: Jedná se o seznam relé a obsahuje položky s jejich stavem (Shelly 1PM obsahuje pouze jedno relé, takže čteme z první položky). Položkou je zde slovník, ze kterého lze z položky {\it ''ison''} vyčíst, zda je relé ve stavu zapnuto nebo vypnuto.
+    \item {\it ''ext\_temperature''}: Jedná se o seznam přípojených externích teplotních senzorů (v této práci je pro každé topení brán v potaz pouze jeden senzor, takže opět čteme z první položky). Položkou je zde slovník z jehož položky {\it ''tC''} vyčteme teplotu ve °C.
+    \item {\it ''meters''}: Obsahuje informace o naměřené okamžité spotřebě elektrické energie ve Wattech, jejíž hodnota je vyčtena z položky {\it ''power''}.
+\end{itemize}
 
-
-\subsection{Sběr dat}
-StatsCollectorInvocable, počasíčko, auto získávání polohy, atd.
-
+\pagebreak
 
 \subsection{Předpověď strojovým učením}
 Generování
@@ -308,6 +318,12 @@ Generování
 Data
 
 Algoritmus
+
+
+\subsection{Komunikace klient-server}
+Models
+
+Enums, Static
 
 
 \section{Mobilní aplikace}
@@ -324,9 +340,15 @@ Providers
 Converters, Helpers
 
 
-\section{Sledování chování původního termostatu}
+\section{Sledování chování systému}
+Jak to sleduju v StatsCollectorInvocable atd...
 
-\section{Sledování systému ovládaného strojovým učením}
+
+\subsection{Původní termostat}
+
+
+
+\subsection{Ovládání strojovým učením}
 
 
 \chapter{Závěr}
