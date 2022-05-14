@@ -212,7 +212,7 @@ Kód řešení ({\it SmartHeater}) je rozdělen na klientskou, serverovou a sdí
     \item \textbf{SmartHeater.Hub}: řídící hub zajišťující serverovou část pod ASP.NET Core Web API a periodické řízení a monitorování registrovaných ovladačů topení.
     \item \textbf{SmartHeater.ML}: knihovna tříd nad frameworkem ML.NET pro strojové učení.
     \item \textbf{SmartHeater.Maui}: klientská multiplatformní aplikace nad .NET MAUI.
-    \item \textbf{SmartHeater.Shared}: knihovna tříd obsahující sdílené prostředky použité v ostatních částech systému.
+    \item \textbf{SmartHeater.Shared}: knihovna tříd obsahující sdílené prostředky používané řídícím hubem i mobilní aplikací (například výčtové typy a třídy použité v HTTP komunikaci pro serializaci a deserializaci ve formátu JSON).
 \end{itemize}
 
 \begin{figure}[hbt]
@@ -234,7 +234,6 @@ Centrálním bodem této práce je software běžící na Raspberry Pi, které z
 Rozhraní pro registrované služby a pro každé z nich jedna z možných implementací se v projektu nacházejí ve jmenném prostoru {\it SmartHeater.Hub.Services}. Způsob práce s využitím rozhraní byl zvolen z důvodu možnosti budoucí rozšiřitelnosti a nahrazení aktuální implementace bez nutnosti přepisování kódu, který rozhraní využívá.
 
 \begin{figure}[hbt]
-\centering
 \includegraphics[width=0.69\textwidth]{obrazky-figures/code-hubservices.png}
 \caption{Registrace implementací rozhraní služeb v souboru {\it Program.cs}, které bude DI kontejner poskytovat v rámci aplikace}
 \end{figure}
@@ -269,33 +268,44 @@ Implementace ve třídě {\it InfluxDbService} využívá knihovnu {\it InfluxDB
 \end{figure}
 
 \pagebreak
+Jmenný prostor {\it SmartHeater.Shared.Static} obsahuje pomocné statické třídy {\it DbFields} a {\it HistoryPeriods} zajišťují kontrolu validity vyžádané položky databáze a časového úseku. K tomuto používají předdefinované konstanty typu string. Obsahují metodu {\it GetAll} sloužící jako iterátor přes všechny definované konstanty a metodu {\it IsValid}, která zjistí validitu zadaného parametru porovnáním jeho existence s položkami iterátoru {\it GetAll}.
+
+\begin{figure}[hbt]
+\includegraphics[width=0.75\textwidth]{obrazky-figures/code-aggregationwindow.png}
+\caption{Třída {\it HistoryPeriods} navíc pro část Flux dotazu obsahuje metodu {\it AggregationWindow}, která pro dané časové období (dle odpovídající definované konstanty) vrací příslušnou velikost agregačního okna. Tyto velikosti byly odvozeny od velikostí okna, které používá webové rozhraní InfluxDB pro dané časové úseky. Delší vyžádané časové období představuje více naměřených hodnot a s tím spojené vyšší nároky na paměť a síťový provoz.}
+\end{figure}
+
 
 \subsection{Správa a ovládání topení}
 Rozhraní {\it IHeatersRepository} poskytuje metody pro správu sítě topení. Umožňuje získání informací o registrované jednotce ({\it GetHeaterAsync}) i možnost získání detailu s měřením teploty v místnosti a spotřeby energie ({\it GetHeaterDetailAsync}), čtení i zápis kolekce registrovaných jednotek ({\it ReadHeatersAsync} a {\it WriteHeatersAsync}), vkládání ({\it InsertAsync}), aktualizace ({\it UpdateAsync}) a mazání jednotlivých topení ({\it DeleteAsync}), a získání služby implementující rozhraní {\it IHeaterControlService} pro ovládání daného topení (pro všechny registrované jednotky {\it GetHeaterServicesAsync}, nebo pro jedno konktrétní registrované topení {\it GetHeaterService} a {\it GetHeaterServiceAsync}).
  
 Implementace ve třídě {\it HeatersRepository} pracuje s kolekcí topení uloženou v souboru {\it heaters.json} (a pokud neexistuje, vytvoří si jej). Běžně by bylo vhodné je ukládat jako databázové entity, ale použitá databáze InfluxDB pracuje pouze s časovými řadami, pro které je optimalizovaná, a instalovat vedle ní navíc relační databázový server by bylo v případě tohoto projektu zbytečné.
 
+Jmenný prostor {\it SmartHeater.Shared.Models} obsahuje třídy použitých datových modelů. Jedním z nich je {\it HeaterListModel} představující model registrovaného topení. Topení jsou rozlišována dle \textbf{IP adresy}. Dále model obsahuje informace o názvu topení, typu topné jednotky (výčtový typ {\it HeaterTypes} aktuálně obsahuje pouze {\it Shelly1PM}, ale do budoucna je možné řešení rozšířit i o další typy), a nastavené referenční teplotě, kterou se bude ovládající část snažit v místnosti udržet.
+
+\pagebreak
+
 \begin{figure}[hbt]
 \centering
-\includegraphics[height=2.9cm]{obrazky-figures/code-heaterslistmodel.png}
-\includegraphics[height=2.9cm]{obrazky-figures/code-heatersjson.png}
-\caption{{\it HeaterListModel} představuje model registrovaného topení, jejichž  kolekce je uložena ve formátu JSON. Topení jsou rozlišována dle \textbf{IP adresy}. Dále model obsahuje informace o názvu topení, typu topné jednotky (výčtový typ {\it HeaterTypes} aktuálně obsahuje pouze {\it Shelly1PM}, ale do budoucna je možné řešení rozšířit i o další typy), a nastavené referenční teplotě, kterou se bude ovládající část snažit v místnosti udržet.}
+\includegraphics[height=2.94cm]{obrazky-figures/code-heaterslistmodel.png}
+\includegraphics[height=2.94cm]{obrazky-figures/code-heatersjson.png}
+\caption{{\it HeaterListModel} a reprezentace jejich kolekce ve formátu JSON uložené v souboru {\it heaters.json}}
 \end{figure}
 
-{\it IHeaterControlService} je rozhraní ovladače jednoho topení. Obsahuje metody pro zapnutí ({\it TurnOnAsync}) i vypnutí ({\it TurnOffAsync}) jednotky a získání jejího stavu ({\it GetStatusAsync}) v modelu {\it HeaterStatusModel}, který obsahuje IP adresu zařízení, časové razítko měření, označení zda je topení aktuálně zapnuté nebo vypnuté, záznam teploty v místnosti a aktuální spotřebu energie.
+Dalším datovým modelem je {\it HeaterStatusModel}, který představuje záznam o stavu topení. Obsahuje informace, zda je topení ve stavu zapnuto nebo vypnuto, naměřenou teplotu v místnosti, záznam o okamžité spotřebě elektrické energie ve Wattech a časové razítko měření. Model použitý pro získání detailu o topení {\it HeaterDetailModel} obsahuje informace uložené v rámci {\it HeaterListModel} i záznam o měření v položce typu {\it HeaterStatusModel}.
+
+Oddělené rozhraní ovladače topení {\it IHeaterControlService} obsahuje metody pro zapnutí ({\it TurnOnAsync}) i vypnutí ({\it TurnOffAsync}) topné jednotky a získání jejího stavu ({\it GetStatusAsync}) v modelu {\it HeaterStatusModel}.
 
 \begin{figure}[hbt]
 \includegraphics[width=0.9\textwidth]{obrazky-figures/code-heaterservice-decode.png}
-\caption{Metoda třídy {\it HeatersRepository} vracející příslušnou implementaci rozhraní {\it IHeaterControlService} dle konkrétního typu topení. Pro neznámý neimplementovaný typ vrací hodnotu null.}
+\caption{Metoda třídy {\it HeatersRepository} vracející příslušnou implementaci rozhraní {\it IHeaterControlService} dle konkrétního typu topení. Pro neznámý neimplementovaný typ vrací hodnotu null. V této práci je však použito výhradně zařízení Shelly 1PM, pro které je implementace rozhraní {\it IHeaterControlService} vytvořena ve třídě {\it ShellyRelayService}. Ta stojí na komunikaci s vestavěným lokálním REST API \cite{shelly_api}, a proto je vyžadována konfigurace IP adresy zařízení.}
 \end{figure}
-
-V této práci je použito výhradně zařízení Shelly 1PM, pro které je implementace rozhraní {\it IHeaterControlService} vytvořena ve třídě {\it ShellyRelayService}. Ta stojí na komunikaci s vestavěným lokálním REST API \cite{shelly_api}, a proto je vyžadována konfigurace IP adresy zařízení.
 
 \pagebreak
 
 \begin{figure}[hbt]
 \includegraphics[width=0.8\textwidth]{obrazky-figures/code-shellyturns.png}
-\caption{Metody {\it TurnOnAsync} a {\it TurnOffAsync} využívají k zasílání příslušného příkazu zapnout/vypnout HTTP metodu {\it POST} na koncový bod \textbf{/relay/0}, jíž je předán příkaz {\it ''turn'' ''on''} nebo {\it ''off''} v přiloženém obsahu ve formátu {\it application/x-www-form-urlencoded} dle \cite{shelly_http}.}
+\caption{Třída {\it ShellyRelayService} obsahuje metody {\it TurnOnAsync} a {\it TurnOffAsync} využívají k zasílání příslušného příkazu zapnout/vypnout HTTP metodu {\it POST} na koncový bod \textbf{/relay/0}, jíž je v těle zprávy předán příkaz {\it ''turn'' ''on''} nebo {\it ''off''} ve formátu {\it application/x-www-form-urlencoded} dle \cite{shelly_http}.}
 \end{figure}
 
 \begin{figure}[hbt]
@@ -303,7 +313,7 @@ V této práci je použito výhradně zařízení Shelly 1PM, pro které je impl
 \caption{Metoda {\it GetStatusAsync} získá data o stavu zařízení Shelly použitím HTTP metody {\it GET} na koncový bod \textbf{/status}. Obsah odpovědi ve formátu JSON je deserializován do privátní třídy {\it ShellyRelayStatus}, jejíž položky následně dekóduje do objektu typu {\it HeaterStatusModel} voláním pomocných metod.}
 \end{figure}
 
-\noindent Třída {\it ShellyRelayStatus} mapuje dle \cite{shelly-api-status} následující položky:
+\noindent Třída {\it ShellyRelayStatus} mapuje dle \cite{shelly-api-status} následující položky JSON odpovědi:
 \begin{itemize}
     \item {\it ''relays''}: Jedná se o seznam relé a obsahuje položky s jejich stavem (Shelly 1PM obsahuje pouze jedno relé, takže čteme z první položky). Položkou je zde slovník, ze kterého lze z položky {\it ''ison''} vyčíst, zda je relé ve stavu zapnuto nebo vypnuto.
     \item {\it ''ext\_temperature''}: Jedná se o seznam přípojených externích teplotních senzorů (v této práci je pro každé topení brán v potaz pouze jeden senzor, takže opět čteme z první položky). Položkou je zde slovník z jehož položky {\it ''tC''} vyčteme teplotu ve °C.
@@ -312,18 +322,24 @@ V této práci je použito výhradně zařízení Shelly 1PM, pro které je impl
 
 \pagebreak
 
-\subsection{Předpověď strojovým učením}
-Generování
-
-Data
-
-Algoritmus
-
-
 \subsection{Komunikace klient-server}
-Models
+Klientská aplikace může komunikovat s řídícím hubem pomocí HTTP metod dle registrovaných koncových bodů na dostupném webovém API ASP.NET Core.
 
-Enums, Static
+\begin{figure}[hbt]
+\includegraphics[width=0.75\textwidth]{obrazky-figures/code-endpoints.png}
+\caption{Příklad způsobu registrace HTTP metod pomocí minimálního webového API v souboru {\it SmartHeater.Hub/Program.cs}. V implementaci jsou použity HTTP metody {\it GET}, {\it POST}, {\it PUT} a {\it DELETE}. Tyto koncové body využívají služby poskytované DI kontejnerem. Na poskytnuté instanci služby jsou volány její asynchronní metody.}
+\end{figure}
+
+\noindent Dle zvolené HTTP metody koncové body poskytují následující činnosti:
+\begin{itemize}
+    \item {\it ''/heaters''}: Požadavkem metodou {\it GET} vrací kolekci registrovaných topení typu {\it HeaterListModel}. Metoda {\it POST} naopak {\it HeaterListModel} očekává v těle zprávy s vyplněnými informacemi o novém topení, které přidá do kolekce a uloží do souboru {\it heaters.json}.
+    \item {\it ''/heaters/\{ipAddress\}''}: Metoda {\it GET} pro tento koncový bod vrací detailní informace o topení v modelu {\it HeaterDetailModel}. Požadavek metodou {\it PUT} upraví specifikovaný záznam o topení přijatým {\it HeaterListModel} v těle zprávy. Dále metodou {\it DELETE} smaže specifikované topení z kolekce uložené v souboru {\it heaters.json}.
+    \item {\it ''/weather''}: Požadavkem metodou {\it GET} vrací záznam o aktuální venkovní teplotě ve °C získaném ze služby {\it OpenWeather}.
+    \item {\it ''/heaters/\{ipAddress\}/history/\{period\}/\{field\}''}: Metoda {\it GET}, která vrací historii uloženou v databázi InfluxDB, která je filtrována v dotaze v jazyce Flux dle topení specifikovaného IP adresou, požadovaným časovým úsekem a typem položky databáze.
+    \item {\it ''/periods''}: Vrací kolekci podporovaných časových úseků pro filtrování Flux dotazem specifikované ve statické třídě {\it HistoryPeriods}.
+    \item {\it ''/fields''}: Vrací kolekci v implementaci použitých položek uložených v databázi InfluxDB (sloupce tabulky). 
+    \item {\it ''/smartheater-availability-test''}: Používaný mobilní aplikací pro snadné zjištění dostupnosti serveru.
+\end{itemize}
 
 
 \section{Mobilní aplikace}
@@ -333,11 +349,53 @@ MauiProgram
 
 Shell
 
+\begin{figure}[hbt]
+\includegraphics[width=0.87\textwidth]{obrazky-figures/code-maui-appshellprovider.png}
+\caption{Statická třída {\it AppShellProvider} ze jmenného prostoru {\it SmartHeater.Maui.Providers} zprostředkovává hlavní rozhraní aplikace vestavěného typu {\it Shell}. Využívá možností direktiv pro překladač, kdy pomocí definovaných proměnných lze zjistit, zda je překládáno pro mobilní či desktopovou platformu. Dle toho vrací příslušný Shell a také upravuje směrování na příslušnou stránku detailu topení, jejíž rozhraní je také upraveno dle platformy.}
+\end{figure}
+
 Pages, Views, ViewModels
 
-Providers
-
 Converters, Helpers
+
+\subsection{Stránky pro správu topení}
+
+
+\subsection{Zobrazení dat o počasí}
+
+
+\subsection{Stránka nastavení}
+
+
+\subsection{Pomocné třídy}
+\begin{figure}[hbt]
+\includegraphics[width=0.85\textwidth]{obrazky-figures/code-maui-converters0.png}
+\caption{}
+\end{figure}
+
+\begin{figure}[hbt]
+\includegraphics[width=\textwidth]{obrazky-figures/code-maui-converters1.png}
+\caption{}
+\end{figure}
+
+\begin{figure}[hbt]
+\includegraphics[width=0.81\textwidth]{obrazky-figures/code-maui-icons.png}
+\caption{}
+\end{figure}
+
+
+\section{Předpověď strojovým učením}
+Úvod k {\it SmartHeaterModel}
+
+\subsection{Trénovací data}
+Generování
+
+Data
+
+\subsection{Model strojového učení}
+
+
+\subsection{Algoritmus rozhodování o ovládání topení}
 
 
 \section{Sledování chování systému}
