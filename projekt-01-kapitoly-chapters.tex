@@ -5,9 +5,9 @@
 
 S nástupem popularity chytré domácnosti a rozšířené možnosti veškerá připojená zařízení jednoduše ovládat i na dálku s požitím mobilního telefonu byly rozšířeny i způsoby domácího vytápění v podobě chytrých termostatů. V současné době jsou tato řešení ovšem často velmi nákladná a bývají také často omezeny na existující infrastrukturu ústředního vytápění se zdrojem tepla a rozvody.
 
-Moje domácnost například tuto infrastrukturu vůbec nemá. Místo toho je v každé místnosti umístěn přímotopný konvektor připojený do zásuvky. Tyto jednotky mají výhodu ve snadné instalaci, možnosti samostaně a nezávisle fungovat, i úsporném provozu, ale nelze na nich přímo nastavit požadovanou teplotu v místnosti, tudíž může docházet k přetápění. Navíc je do ovládání chytrým centrálním termostatem není možné zapojit.
+Moje domácnost například tuto infrastrukturu vůbec nemá. Místo toho je v každé místnosti umístěn přímotopný konvektor připojený do zásuvky. Tyto jednotky mají výhodu ve snadné instalaci, možnosti samostatně a nezávisle fungovat, i úsporném provozu, ale nelze na nich přímo nastavit požadovanou teplotu v místnosti, tudíž může docházet k přetápění. Navíc je do ovládání chytrým centrálním termostatem není možné zapojit.
 
-Cílem této práce je tedy navrhnout prototyp systému chytré domácnosti zaměřené na vytvoření sítě topných jednotek, které bude připojením k Wi-Fi možné vzdáleně monitorovat a ovládat. Pro tento účel bylo zvoleno relé Shelly 1PM, které umožňuje přímotop připojit do sítě Wi-Fi, sledovat jeho spotřebu, a navíc s pomocí teplotního čidla měřit teplotu v okolí. Toto relé tedy zajistí potřebnou funkcionalitu za nízkou cenu na jednotku. Pro centrální řízení této sítě bude použit minipočítač Raspberry Pi 4 Model B. V rámci sofrwarové části bude také pro pohodlí uživatele vytvořena mobilní aplikace, ve které bude možné nakonfigurovat nastavení jednotlivých topení i jejich další monitorování.
+Cílem této práce je tedy navrhnout prototyp systému chytré domácnosti zaměřené na vytvoření sítě topných jednotek, které bude připojením k Wi-Fi možné vzdáleně monitorovat a ovládat. Pro tento účel bylo zvoleno relé Shelly 1PM, které umožňuje přímotop připojit do sítě Wi-Fi, sledovat jeho spotřebu, a navíc s pomocí teplotního čidla měřit teplotu v okolí. Toto relé tedy zajistí potřebnou funkcionalitu za nízkou cenu na jednotku. Pro centrální řízení této sítě bude použit minipočítač Raspberry Pi 4 Model B. V rámci softwarové části bude také pro pohodlí uživatele vytvořena mobilní aplikace, ve které bude možné nakonfigurovat nastavení jednotlivých topení i jejich další monitorování.
 
 Toto řešení by tedy mělo v existující domácnosti používající „hloupé“ přímotopné konvektory zajistit cenově dostupný systém, který by měl zvýšit uživatelské pohodlí i budoucí energetická úspora.
 
@@ -56,7 +56,7 @@ Na světovém trhu ovšem existují i řešení v podobě elektrických topení 
 
 
 \section{Tuya Wi-Fi termostat}
-Posledním zajímavým produktem ve světě je Tuya Wi-Fi termostat \cite{tuyaterm}, který by svou formou byl z předchozích zmíněný nejvhodnější volbou do prostředí s existujícími přímotopnými konvektory, které bychom chtěli připojit k Wi-Fi a vzdáleně je ovládat a monitorivat. Svým hardwarovým provedením je také podobný řešení představeném v podkapitole \ref{navrh-shelly}.
+Posledním zajímavým produktem ve světě je Tuya Wi-Fi termostat \cite{tuyaterm}, který by svou formou byl z předchozích zmíněný nejvhodnější volbou do prostředí s existujícími přímotopnými konvektory, které bychom chtěli připojit k Wi-Fi a vzdáleně je ovládat a monitorovat. Svým hardwarovým provedením je také podobný řešení představeném v podkapitole \ref{navrh-shelly}.
 
 \begin{figure}[hbt]
 \centering
@@ -172,7 +172,7 @@ Obrázek \ref{mauiArchitectureDiagra} zobrazuje architekturu aplikace používaj
 \end{figure}
 
 \subsection{XAML}
-Dle \cite{xaml} je XAML ({\it eXtensible Application Markup Language}) jazyk založený na XML, který je alternativou k programování kódem, kdy jsou vytvářeny instance objektů organizováné v hierarchiích. Umožňuje definovat uživatelská rozhraní aplikací pomocí značek. XAML není vyžadován v aplikaci .NET MAUI, ale je to doporučený přístup k vývoji uživatelského rozhraní, protože je často stručnější, vizuálně koherentnější a má podporu nástrojů v IDE. XAML se také dobře hodí pro použití se vzorem {\it Model-View-ViewModel (MVVM)}, kde XAML definuje pohled, který je propojen s kódem viewmodelu v C\# prostřednictvím datových vazeb.
+Dle \cite{xaml} je XAML ({\it eXtensible Application Markup Language}) jazyk založený na XML, který je alternativou k programování kódem, kdy jsou vytvářeny instance objektů organizované v hierarchiích. Umožňuje definovat uživatelská rozhraní aplikací pomocí značek. XAML není vyžadován v aplikaci .NET MAUI, ale je to doporučený přístup k vývoji uživatelského rozhraní, protože je často stručnější, vizuálně koherentnější a má podporu nástrojů v IDE. XAML se také dobře hodí pro použití se vzorem {\it Model-View-ViewModel (MVVM)}, kde XAML definuje pohled, který je propojen s kódem viewmodelu v C\# prostřednictvím datových vazeb.
 
 \subsection{Model-View-ViewModel}
 Návrhový vzor Model-View-ViewModel (MVVM) dle \cite{mvvm} vynucuje oddělení mezi třemi softwarovými vrstvami – uživatelským rozhraním, nazývaným pohled (view), podkladovými daty, nazývanými model, a prostředníkem mezi pohledem a modelem, nazývaným viewmodel. Pohled a viewmodel jsou často propojeny prostřednictvím datových vazeb definovaných v XAML, kde je vlastnost {\it BindingContext} obvykle instancí daného viewmodelu.
@@ -181,7 +181,7 @@ Návrhový vzor Model-View-ViewModel (MVVM) dle \cite{mvvm} vynucuje oddělení 
 
 
 \section{InfluxDB}
-Pro ukládání dat o připojených topeních byla zvolen databázový software {\it InfluxDB} vytvořený společností InfluxData. Dle \cite{influx_gh} je to open-source platforma pracující s časovými řadami. To zahrnuje rozhraní API pro ukládání a dotazování nad daty, jejich zpracování pro účely monitorování a upozornění, uživatelské panely a vizualizace dat v přehledném rozgraní pod \url{http://localhost:8086/} (případně po nasazení na Raspberry Pi dostupné pod jeho IP adresou místo rozhraní localhost).
+Pro ukládání dat o připojených topeních byla zvolen databázový software {\it InfluxDB} vytvořený společností InfluxData. Dle \cite{influx_gh} je to open-source platforma pracující s časovými řadami. To zahrnuje rozhraní API pro ukládání a dotazování nad daty, jejich zpracování pro účely monitorování a upozornění, uživatelské panely a vizualizace dat v přehledném rozhraní pod \url{http://localhost:8086/} (případně po nasazení na Raspberry Pi dostupné pod jeho IP adresou místo rozhraní localhost).
 
 Pro zápis a dotazování nad daty nebo jakékoliv používání rozhraní API, je nejprve nutné vytvořit uživatelské přihlašovací údaje, organizaci a segment. Vše v InfluxDB je organizováno pod konceptem organizace. API je navrženo jako multi-tenant (sdílené skupinou uživatelů). Segmenty představují místo, kde jsou ukládány data časové řady.
 
@@ -193,9 +193,6 @@ Dotazy na tuto databázi využívají jazyka {\it Flux}. Dle \cite{flux} je to o
 \caption{Příklad dotazu pro čtení z databáze InfluxDB v jazyce Flux \cite{flux_gs}}
 \end{figure}
 
-%\noindent Více o způsobech používání funkcí API InfluxDB pro čtení a zápis v kapitole \ref{implementace}.
-
-
 \section{Nginx}
 Dle \cite{nginx_wiki} Nginx je softwarový webový server s managementem zátěže a reverzní proxy s otevřeným zdrojovým kódem. Pracuje s protokoly HTTP (i HTTPS), SMTP, POP3, IMAP a SSL. Zaměřuje se především na vysoký výkon a nízké nároky na paměť.
 
@@ -204,7 +201,7 @@ V projektu je Nginx použit dle \cite{nginx_asp} jako reverzní proxy server, kt
 \chapter{Implementace a testování}
 \label{implementace}
 
-Tato kapitola se zabývá detaily implementace systému {\it SmartHeater} vytvořeného v rámci této práce, který je nasazen jako řídící software na dříve zmíněném minipočítači Raspberry Pi. Uživateli také umožní správu a monitorování sítě chytrých topení v jednoduché vlastní mobilní aplikaci. Závěr této kapitoly se zabývá testováním výsleků získaných během sběru dat implementovaným systémem.
+Tato kapitola se zabývá detaily implementace systému {\it SmartHeater} vytvořeného v rámci této práce, který je nasazen jako řídící software na dříve zmíněném minipočítači Raspberry Pi. Uživateli také umožní správu a monitorování sítě chytrých topení v jednoduché vlastní mobilní aplikaci. Závěr této kapitoly se zabývá testováním výsledků získaných během sběru dat implementovaným systémem.
 
 \section{Architektura řešení}
 Kód řešení ({\it SmartHeater}) je rozdělen na klientskou, serverovou a sdílenou část. Projekty se zdrojovým kódem řešení systému jsou rozděleny na 4 části:
@@ -277,7 +274,7 @@ Jmenný prostor {\it SmartHeater.Shared.Static} obsahuje pomocné statické tř�
 
 
 \subsection{Správa a ovládání topení}
-Rozhraní {\it IHeatersRepository} poskytuje metody pro správu sítě topení. Umožňuje získání informací o registrované jednotce ({\it GetHeaterAsync}) i možnost získání detailu s měřením teploty v místnosti a spotřeby energie ({\it GetHeaterDetailAsync}), čtení i zápis kolekce registrovaných jednotek ({\it ReadHeatersAsync} a {\it WriteHeatersAsync}), vkládání ({\it InsertAsync}), aktualizace ({\it UpdateAsync}) a mazání jednotlivých topení ({\it DeleteAsync}), a získání služby implementující rozhraní {\it IHeaterControlService} pro ovládání daného topení (pro všechny registrované jednotky {\it GetHeaterServicesAsync}, nebo pro jedno konktrétní registrované topení {\it GetHeaterService} a {\it GetHeaterServiceAsync}).
+Rozhraní {\it IHeatersRepository} poskytuje metody pro správu sítě topení. Umožňuje získání informací o registrované jednotce ({\it GetHeaterAsync}) i možnost získání detailu s měřením teploty v místnosti a spotřeby energie ({\it GetHeaterDetailAsync}), čtení i zápis kolekce registrovaných jednotek ({\it ReadHeatersAsync} a {\it WriteHeatersAsync}), vkládání ({\it InsertAsync}), aktualizace ({\it UpdateAsync}) a mazání jednotlivých topení ({\it DeleteAsync}), a získání služby implementující rozhraní {\it IHeaterControlService} pro ovládání daného topení (pro všechny registrované jednotky {\it GetHeaterServicesAsync}, nebo pro jedno konkrétní registrované topení {\it GetHeaterService} a {\it GetHeaterServiceAsync}).
  
 Implementace ve třídě {\it HeatersRepository} pracuje s kolekcí topení uloženou v souboru {\it heaters.json} (a pokud neexistuje, vytvoří si jej). Běžně by bylo vhodné je ukládat jako databázové entity, ale použitá databáze InfluxDB pracuje pouze s časovými řadami, pro které je optimalizovaná, a instalovat vedle ní navíc relační databázový server by bylo v případě tohoto projektu zbytečné.
 
@@ -345,7 +342,7 @@ Klientská aplikace může komunikovat s řídícím hubem pomocí HTTP metod dl
 \section{Mobilní aplikace}
 Multiplatformní aplikace implementovaná nad frameworkem .NET MAUI byla vytvořena jako klient pro komunikaci se serverem běžícím pod frameworkem ASP.NET a umožní uživateli snadnou správu a monitorování sítě topení instalovaných v domácnosti.
 
-Ústředním bodem zdrojového kódu aplikace je její konfigurace v souboru {\it MauiProgram.cs}. Zde je podobně jako v konfiguraci řídícího hubu poskytován kontejner DI, který poskytuje stránky, viewmodely a další služby (například {\it HttpClient} pro komunikaci s webovým API). Další konfigurace zdrojů pro XAML se nacházi v souborech {\it App.xaml} a {\it App.xaml.cs}.
+Ústředním bodem zdrojového kódu aplikace je její konfigurace v souboru {\it MauiProgram.cs}. Zde je podobně jako v konfiguraci řídícího hubu poskytován kontejner DI, který poskytuje stránky, viewmodely a další služby (například {\it HttpClient} pro komunikaci s webovým API). Další konfigurace zdrojů pro XAML se nachází v souborech {\it App.xaml} a {\it App.xaml.cs}.
 
 Jako základní prvek propojující uživatelské rozhraní této aplikace je použit {\it Shell}, který dle \cite{maui-shell} snižuje složitost vývoje aplikací tím, že poskytuje základní funkce vyžadované většinou aplikací, včetně jediného místa pro popis vizuální hierarchie aplikace, navigační schéma založené na URI, které umožňuje navigaci na jakoukoli stránku v aplikaci a integrovaný obslužný program vyhledávání.
 
@@ -383,12 +380,12 @@ Stránka pro přidání topení {\it AddHeaterPage} obsahuje textová pole pro p
 \frame{\includegraphics[width=0.32\textwidth]{obrazky-figures/screenshots/2-add.jpg}}
 \frame{\includegraphics[width=0.32\textwidth]{obrazky-figures/screenshots/2-add-type.jpg}}
 \frame{\includegraphics[width=0.32\textwidth]{obrazky-figures/screenshots/2-edit.jpg}}
-\caption{Uživatelské rozhraní {\it AddHeaterPage} má v případě přidávání textová pole prázdná a v případě editace vyplněná dle vybraného topení. Výběr typu topení je zde pro případnou budoucí podporu více typů předpřipraven ve značce {\it Picker}.}
+\caption{Uživatelské rozhraní {\it AddHeaterPage} má v případě přidávání textová pole prázdná a v případě editace vyplněná dle vybraného topení. Výběr typu topení je zde pro případnou budoucí podporu více typů předpřipraven v XAML značce {\it Picker}. Po kliknutí na tlačítko ''Uložit'' je formát IP adresy zadané v textovém poli zkontrolován voláním .NET knihovní metody {\it System.Net.IPAddress.Parse}. Ta v případě chyby vyhodí výjimku {\it FormatException}, která je zachycena a HTTP požadavek se tudíž neodešle.}
 \end{figure}
 
 Další částí pro samotné monitorování stavu topení je stránka detailu, která se zobrazí po kliknutí na položku v seznamu registrovaných topení na úvodní stránce {\it HeatersPage}. K této stránce patří viewmodel {\it HeaterDetailViewModel}, který implementuje podporu URI navigace s parametrem IP adresy topení. Ta je použita jako parametr metody {\it GetHeaterDataAsync}, která pomocí HTTP metody {\it GET} stáhne data o daném topení a deserializuje je do objektu typu {\it HeaterDetailModel}.
 
-Nahoře na stránce se nachází tlačítka s akcemi nad topením pro znovunačtení aktuálních informací o topení, navigaci na editační stránku topení a jeho smazání. Znovunačtení je provedeno voláním metody {\it ReLoad}, která opět volá {\it GetHeaterDataAsync} s parametrem IP adresy aktuálně zobrazeného topení. Editační tlačítko naviguje pomocí {\it Shell} na stránku {\it AddHeaterPage}, které předá parametry k editaci. Tlačítko smazání zobrazí dialog o potvzení smazání, a pokud je zvolena možnost {\it ''Ano''} posílá HTTP požadavek metodou {\it DELETE}. Zvolením {\it ''Ne''} je dialog uzavřen a požadavek na smazání serveru není odeslán.
+Nahoře na stránce se nachází tlačítka s akcemi nad topením pro znovunačtení aktuálních informací o topení, navigaci na editační stránku topení a jeho smazání. Znovunačtení je provedeno voláním metody {\it ReLoad}, která opět volá {\it GetHeaterDataAsync} s parametrem IP adresy aktuálně zobrazeného topení. Editační tlačítko naviguje pomocí {\it Shell} na stránku {\it AddHeaterPage}, které předá parametry k editaci. Tlačítko smazání zobrazí dialog o potvrzení smazání, a pokud je zvolena možnost {\it ''Ano''} posílá HTTP požadavek metodou {\it DELETE}. Zvolením {\it ''Ne''} je dialog uzavřen a požadavek na smazání serveru není odeslán.
 
 \begin{figure}[hbt]
 \includegraphics[width=0.72\textwidth]{obrazky-figures/code-gotoedit.png}
@@ -398,8 +395,6 @@ Nahoře na stránce se nachází tlačítka s akcemi nad topením pro znovunačt
 Tato stránka má dvě varianty na základě platformy (mobilní pro Android a iOS, a desktopovou pro ostatní), jak již bylo zmíněno u obrázku \ref{appshellprovider}. Kvůli tomuto rozdělení je kód pro zobrazení informací o topení extrahován do pohledu {\it HeaterDetailView} a {\it HeaterChartsView}. Tímto se stávají znovupoužitelnými a zamezuje se kopírování kódu.
 
 {\it HeaterDetailView} zobrazuje informace z objektu typu {\it HeaterDetailModel}, který mu je předán jako {\it BindingContext}.
-
-\pagebreak
 
 {\it HeaterChartsView} obsahuje grafy, které umožní uživateli zobrazit si a mít přehled o historii teploty v místnosti, kde je topení umístěno, a spotřebě elektrické energie. V aplikaci jsou pro tento účel využity grafy z knihovny {\it Syncfusion.Maui.Charts} dle \cite{maui-charts}. Tento pohled obsahuje viewmodel typu {\it HeaterChartsViewModel}, ve kterém jsou uloženy kolekce s daty pro zobrazení v grafech.
 
@@ -416,42 +411,113 @@ O zobrazení dat o venkovním počasí se stará stránka {\it WeatherPage}. K t
 
 \begin{figure}[hbt]
 \centering
-\frame{\includegraphics[height=8.6cm]{obrazky-figures/screenshots/4-weather.png}}
-\frame{\includegraphics[height=8.6cm]{obrazky-figures/screenshots/4-periods-select.png}}
+\frame{\includegraphics[height=8.22cm]{obrazky-figures/screenshots/4-weather.png}}
+\frame{\includegraphics[height=8.22cm]{obrazky-figures/screenshots/4-periods-select.png}}
 \caption{Stránka zobrazení dat o počasí a výběr časového období.}
 \end{figure}
 
 
 \subsection{Stránka nastavení}
+Lokální nastavení aplikace je uživateli umožněno na stránce {\it SettingsPage}. Jedná se tedy hlavně o nastavení IP adresy řídícího hubu, kam chodí HTTP požadavky z ostatních stránek. Toto nastavení je v rámci celé aplikace sdíleno třídou {\it SettingsProvider}, která jej ukládá lokálně do souboru {\it settings.json}.
 
+\begin{figure}[hbt]
+\includegraphics[width=0.89\textwidth]{obrazky-figures/code-settingsprovider.png}
+\caption{Metoda pro získání cesty k souboru {\it settings.json}, který lze zapsat do speciální složky vyhrazené pro lokální aplikační data.}
+\end{figure}
+
+\begin{figure}[hbt]
+\includegraphics[width=0.68\textwidth]{obrazky-figures/code-settingsjson.png}
+\caption{K serializaci a deserializaci formátu JSON je použita samotná třída {\it SettingsProvider}. Této statické metody využívá též kontejner DI pro její inicializaci.}
+\end{figure}
+
+\pagebreak
+
+IP adresu řídícího hubu lze zadat do textového pole manuálně, nebo pomocí skeneru lokální sítě. Nahoře na stránce je následně vidět stav připojení.
+
+\begin{figure}[hbt]
+\centering
+\frame{\includegraphics[height=8.6cm]{obrazky-figures/screenshots/5-settings-scan.png}}
+\frame{\includegraphics[height=8.6cm]{obrazky-figures/screenshots/5-settings.png}}
+\caption{Po výběru adresy sítě a délky masky je po kliknutí na tlačítko {\it ''Scan subnet''} spuštěn proces vyhledávání v síti. Tento proces je naznačen indikátorem aktivity a v textu nahoře je zobrazen stav připojování. Pro delší masku sítě může sken trvat déle, a z tohoto důvodu bylo přidáno také tlačítko na zrušení akce.}
+\end{figure}
+
+Zjištění dostupnosti řídícího hubu je z {\it SettingsPage} odděleno do {\it HubScannerView}, ke kterému patří viewmodel typu {\it HubScannerViewModel}. Dostupnost na dané IP adrese je zjištěna HTTP požadavkem metodou {\it GET} na koncový bod webového API {\it ''smartheater-availability-test''}. Metoda {\it AutoDiscover} používá .NET knihovní metodu {\it Parallel.ForEachAsync}, která využívá možnosti paralelního spuštění asynchronních úloh pro posílání HTTP požadavků. Pokud z dané IP adresy přijde očekávaná odpověď, řídící hub byl v síti nalezen a hledání je ukončeno. Běžícím paralelním úlohám je odesláno oznámení o zrušení pomocí {\it CancellationToken}. V případě manuálního zadání IP adresy je dostupnost řídícího hubu zjištěna obdobným způsobem, jen je tento HTTP požadavek odeslán pouze na tuto jednu zadanou IP adresu. Pro samotné procházení podsítě byla přidána pomocná třída {\it SubnetHelper}.
 
 \subsection{Pomocné třídy}
-Converters, Helpers
+Implementace mobilní aplikace, krom pomocných tříd modelů a výčtového typu sdílených s řídícím hubem, obsahuje také vlastní pomocné třídy používané jejími stránkami.
+
+{\it SubnetHelper} je pomocná třída používaná během skenování lokální sítě na stránce nastavení. Udržuje si zadanou IP adresu, délku masky a pole typu byte s bitovou maskou. Pro inkrementaci IP adresy se pracuje s její podobou v poli typu byte, na které je následně aplikována maska sítě logickou operací {\it OR}, a pokud jsou všechny prvky po aplikaci masky rovny maximální hodnotě 255, jedná se o poslední adresu, jinak se pokračuje v inkrementaci.
+
+{\it IconFontHelper} je pomocná třída vygenerovaná webovou službou {\it IconFont2Code} (dostupné na \url{https://andreinitescu.github.io/IconFont2Code}). Cílem této třídy je poskytnout sadu konstant typu string, které zpřehlední kód v místě použití ikony. Tyto konstanty odpovídají speciálním kódům ikon z fontu {\it materialdesignicons-webfont.ttf} (soubor je k nalezení mezi zdroji aplikace ve složce {\it Resources/Fonts}).
 
 \begin{figure}[hbt]
-\includegraphics[width=0.85\textwidth]{obrazky-figures/code-maui-converters0.png}
-\caption{}
+\includegraphics[width=0.81\textwidth]{obrazky-figures/code-mauiprogram.png}
+\caption{Konfigurace v souboru {\it MauiProgram.cs}, kde je font ikon registrován pod klíčem {\it ''MaterialDesignIcons''}.}
 \end{figure}
 
 \begin{figure}[hbt]
-\includegraphics[width=\textwidth]{obrazky-figures/code-maui-converters1.png}
-\caption{}
+\includegraphics[width=0.8\textwidth]{obrazky-figures/code-maui-icons.png}
+\caption{Příklad použití třídy {\it IconFontHelper} pro vložení ikony radiátoru do záložky stránky se správou topení.}
 \end{figure}
 
+Poslední z použitých pomocných tříd jsou třídy ze složky {\it Converters}, které implementují rozhraní {\it IValueConverter}. Tyto třídy jsou použity v kódu XAML pro konverzi hodnoty jednoho typu na jiný. Dále jsou v aplikaci dostupné pod klíčem registrovaným v {\it ResourceDictionary} v souboru {\it App.xaml}.
+
+Tyto konvertory jsou použity například na stránce nastavení pro konverze hodnoty typu {\it bool?} na string a barvu dle stavu připojení k řídícímu hubu a konverze hodnoty typu bool na string dle stavu topení zapnuto/vypnuto.
+
 \begin{figure}[hbt]
-\includegraphics[width=0.81\textwidth]{obrazky-figures/code-maui-icons.png}
-\caption{}
+\includegraphics[width=0.97\textwidth]{obrazky-figures/code-maui-converters.png}
+\caption{Dalším příkladem je použití konvertorů je na stránce detailu topení konverze hodnoty typu {\it DateTime} z formátu UTC do lokálního času a konvertor, který měření stavu topení zobrazí pouze, pokud je validní a není null.}
 \end{figure}
+
+\pagebreak
 
 \section{Předpověď strojovým učením}
-Úvod k {\it SmartHeaterModel}
+Součástí implementovaného řešení je knihovna tříd {\it SmartHeater.ML}, která obsahuje projekt postavený nad frameworkem ML.NET. Ústředním bodem, který je používán řídícím hubem je třída {\it SmartHeaterModel}, která představuje funkce modelu strojového učení. Má dvě hlavní veřejné metody - {\it EnsureTrainedAsync}, která zajistí případné generování testovacích dat a vytrénování modelu strojového učení; {\it Forecast} načte vytrénovaný model pro dané topení a dle vstupního objektu {\it ModelInput} vrátí výsledek předpovědi v objektu typu {\it ModelOutput}.
 
 \subsection{Trénovací data}
-Generování
+Pro používání modelu strojového učení, jehož předpovědi stojí na algoritmu SSA, potřebuje základní trénovací data představující přibližný průběh funkce běžného domácího vytápění přímotopným konvektorem. Model strojového učení se tuto funkci následně snaží napodobit a na jejím základě sestaví předpověď budoucího vývoje.
 
-Data
+Na této myšlence byla postavena třída {\it MLDataGenerator}, jejíž metoda {\it RunAsync} zajistí vygenerování trénovacích dat do souboru {\it training.csv} a testovací data, která na ně navazují, do souboru {\it testing.csv}. Výsledkem je časová posloupnost, která představuje rozdíl od nastavené referenční teploty. Generované hodnoty se tedy pohybují s určitým rozptylem okolo hodnoty 0. Tento postup byl zvolen z důvodu generování nejvíce univerzálních dat pro praktické použití (uživatel aplikace si může nastavit libovolnou teplotu v místnosti, která bude udržována).
+
+Generátor rovněž pracuje se stavem simulovaného topení a používá jej pro vypočtení dalšího stavu teploty v místnosti (stoupá při stavu zapnuto a klesá při stavu vypnuto) s určitým rozptylem použitím pseudonáhodnosti. Tyto hodnoty jsou počítány s krokem jedné minuty (po dobu roků 2018 a 2019 pro generování trénovacích dat a 2020 pro testovací data). Řídící hub stejně používá krok jedné minuty při plánování ovládání reálných topení.
+
+\begin{figure}[hbt]
+\centering
+\includegraphics[height=4cm]{obrazky-figures/mlgen_1.png}
+\includegraphics[height=4cm]{obrazky-figures/mlgen_2.png}
+\caption{Příklad generovaných dat z csv souboru zobrazených v grafech programu {\it Microsoft Excel}. Krom sledovaného rozdílu od referenční teploty soubor csv obsahuje také datum a čas zobrazené na ose Y, a označení 0/1 představující stav topení. Typický průběh, který je vidět na druhém grafu, obsahuje i výkyvy teploty, kdy teplota vnějším vlivem spadne níže a topení je zapnuto na delší dobu. Opačně může nastat i situace přetopení, kdy je topení déle vypnuto.}
+\end{figure}
+
+\pagebreak
+
+\begin{figure}[hbt]
+\centering
+\includegraphics[width=0.485\textwidth]{obrazky-figures/mlgen_3.png}
+\includegraphics[width=0.485\textwidth]{obrazky-figures/mlgen_4.png}
+\caption{Generátor dat také pracuje s veřejně dostupnými daty o venkovní teplotě  poskytované Českým hydrometeorologickým úřadem dle \cite{ml-chmu-data} v souladu se zákonem 123/1998 Sb. o právu na informace o životním prostředí. Poskytovaná data jsou z období od roku 1961 po rok 2021. V této práci je pro generování použit soubor dat pod Krajem Vysočina z Moravských Budějovic (nejbližší poskytnutá lokace k testovací instalaci v Jaroměřicích nad Rokytnou). Na grafech je vlivem poskytnuté venkovní teploty vidět kolísání rozdílu teploty nad hodnotou 0 a vypnuté topení v letních měsících.}
+\end{figure}
+
 
 \subsection{Model strojového učení}
+Třída {\it SmartHeaterModel} trénu
+
+\begin{figure}[hbt]
+\includegraphics[width=0.95\textwidth]{obrazky-figures/ml-pipeline.png}
+\caption{...}
+\end{figure}
+
+\pagebreak
+
+\begin{figure}[hbt]
+\includegraphics[width=\textwidth]{obrazky-figures/ml-training.png}
+\caption{  ... }
+\end{figure}
+
+\noindent Metoda {\it Evaluate} dle \cite{mlnet_tutorial} provede výpočet relevantních metrik nad testovacími daty oproti testovací předpovědi:
+\begin{itemize}
+    \item {\it Střední absolutní chyba} (MSE) měří, jak blízko jsou předpovědi skutečné hodnotě. Tato hodnota se pohybuje mezi 0 a nekonečnem. Čím blíže k 0, tím lepší je kvalita modelu.
+    \item {\it Střední kvadratická odchylka} (RMSE) shrnuje chybu v modelu. Tato hodnota se pohybuje mezi 0 a nekonečnem. Čím blíže k 0, tím lepší je kvalita modelu.
+\end{itemize}
 
 
 \subsection{Algoritmus rozhodování o ovládání topení}
