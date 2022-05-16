@@ -3,17 +3,17 @@
 % Autoři: Michal Bidlo, Bohuslav Křena, Jaroslav Dytrych, Petr Veigend a Adam Herout 2019
 \chapter{Úvod}
 
-S nástupem popularity chytré domácnosti a rozšířené možnosti veškerá připojená zařízení jednoduše ovládat i na dálku s požitím mobilního telefonu byly rozšířeny i způsoby domácího vytápění v podobě chytrých termostatů. V současné době jsou tato řešení ovšem často velmi nákladné a většina z nich je pouze manuálně programovatelná z aplikace od výrobce a nemají podporu strojového učení, kdy se zařízení automaticky přizpůsobuje dané místnosti. Konvenční termostaty bývají také často omezeny na existující infrastrukturu ústředního vytápění se zdrojem tepla a rozvody.
+S nástupem popularity chytré domácnosti a rozšířené možnosti veškerá připojená zařízení jednoduše ovládat i na dálku s požitím mobilního telefonu byly rozšířeny i způsoby domácího vytápění v podobě chytrých termostatů. V současné době jsou tato řešení ovšem často velmi nákladná a bývají také často omezeny na existující infrastrukturu ústředního vytápění se zdrojem tepla a rozvody.
 
-Moje domácnost například tuto infrastrukturu vůbec nemá. Místo toho je v každé místnosti umístěn samostatný přímotopný konvektor připojený do zásuvky. Tyto jednotky mají výhodu ve snadné instalaci i úsporném provozu, ale nelze přímo nastavit požadovanou teplotu v místnosti, tudíž může docházet k přetápění. Navíc je do ovládání chytrým centrálním termostatem není snadné zapojit.
+Moje domácnost například tuto infrastrukturu vůbec nemá. Místo toho je v každé místnosti umístěn přímotopný konvektor připojený do zásuvky. Tyto jednotky mají výhodu ve snadné instalaci, možnosti samostaně a nezávisle fungovat, i úsporném provozu, ale nelze na nich přímo nastavit požadovanou teplotu v místnosti, tudíž může docházet k přetápění. Navíc je do ovládání chytrým centrálním termostatem není možné zapojit.
 
-Cílem této práce je tedy navrhnout prototyp systému chytré domácnosti zaměřené na vytvoření sítě topných jednotek, které bude připojením k Wi-Fi možné vzdáleně monitorovat a ovládat. Pro tento účel bylo zvoleno relé Shelly 1PM, které umožňuje přímotop připojit do sítě Wi-Fi, sledovat jeho spotřebu, a navíc s pomocí teplotního čidla měřit teplotu v okolí. Toto relé tedy zajistí potřebnou funkcionalitu za nízkou cenu za jednotku. Pro centrální řízení této sítě bude použit minipočítač Raspberry Pi 4 Model B. Pro pohodlí uživatele bude také vytvořena mobilní aplikace, ve které bude možné nakonfigurovat nastavení jednotlivých topení i jejich další monitorování.
+Cílem této práce je tedy navrhnout prototyp systému chytré domácnosti zaměřené na vytvoření sítě topných jednotek, které bude připojením k Wi-Fi možné vzdáleně monitorovat a ovládat. Pro tento účel bylo zvoleno relé Shelly 1PM, které umožňuje přímotop připojit do sítě Wi-Fi, sledovat jeho spotřebu, a navíc s pomocí teplotního čidla měřit teplotu v okolí. Toto relé tedy zajistí potřebnou funkcionalitu za nízkou cenu na jednotku. Pro centrální řízení této sítě bude použit minipočítač Raspberry Pi 4 Model B. V rámci sofrwarové části bude také pro pohodlí uživatele vytvořena mobilní aplikace, ve které bude možné nakonfigurovat nastavení jednotlivých topení i jejich další monitorování.
 
 Toto řešení by tedy mělo v existující domácnosti používající „hloupé“ přímotopné konvektory zajistit cenově dostupný systém, který by měl zvýšit uživatelské pohodlí i budoucí energetická úspora.
 
 \chapter{Systémy vytápění}
 \label{teorie}
-Tato kapitola shrnuje existující řešení, které byly inspirací při vytváření řešení.
+Tato kapitola představuje v jakém testovacím prostředí poběží vytvořený systém chytrého vytápění a shrnuje existující řešení, které byly inspirací během implementace řešení.
 
 \section{Elektrické vytápění}
 Dle \cite{electricHeating} elektrické vytápění je proces, při kterém se elektrická energie přeměňuje na tepelnou energii. Běžnými aplikacemi jsou prostorové vytápění, ohřev vody a průmyslové procesy. Elektrický ohřívač je elektrické zařízení, které přeměňuje elektrický proud na teplo. Topné těleso uvnitř každého elektrického ohřívače je elektrický odpor a funguje na principu Jouleova ohřevu: elektrický proud procházející rezistorem přemění tuto elektrickou energii na tepelnou energii.
@@ -24,7 +24,7 @@ Pro tuto práci byl použit nástěnný přímotopný konvektor \textbf{AEG WKL 
 
 \begin{figure}[hbt]
 \centering
-\includegraphics[width=0.4\textwidth]{obrazky-figures/aeg-wkl-1003u.png}
+\includegraphics[width=0.37\textwidth]{obrazky-figures/aeg-wkl-1003u.png}
 \caption{Fotografie instalovaného přímotopného konvektoru AEG WKL 1003 U}
 \end{figure}
 
@@ -343,31 +343,91 @@ Klientská aplikace může komunikovat s řídícím hubem pomocí HTTP metod dl
 
 
 \section{Mobilní aplikace}
-Maui, Platforms
+Multiplatformní aplikace implementovaná nad frameworkem .NET MAUI byla vytvořena jako klient pro komunikaci se serverem běžícím pod frameworkem ASP.NET a umožní uživateli snadnou správu a monitorování sítě topení instalovaných v domácnosti.
 
-MauiProgram
+Ústředním bodem zdrojového kódu aplikace je její konfigurace v souboru {\it MauiProgram.cs}. Zde je podobně jako v konfiguraci řídícího hubu poskytován kontejner DI, který poskytuje stránky, viewmodely a další služby (například {\it HttpClient} pro komunikaci s webovým API). Další konfigurace zdrojů pro XAML se nacházi v souborech {\it App.xaml} a {\it App.xaml.cs}.
 
-Shell
+Jako základní prvek propojující uživatelské rozhraní této aplikace je použit {\it Shell}, který dle \cite{maui-shell} snižuje složitost vývoje aplikací tím, že poskytuje základní funkce vyžadované většinou aplikací, včetně jediného místa pro popis vizuální hierarchie aplikace, navigační schéma založené na URI, které umožňuje navigaci na jakoukoli stránku v aplikaci a integrovaný obslužný program vyhledávání.
 
 \begin{figure}[hbt]
+\label{appshellprovider}
 \includegraphics[width=0.87\textwidth]{obrazky-figures/code-maui-appshellprovider.png}
-\caption{Statická třída {\it AppShellProvider} ze jmenného prostoru {\it SmartHeater.Maui.Providers} zprostředkovává hlavní rozhraní aplikace vestavěného typu {\it Shell}. Využívá možností direktiv pro překladač, kdy pomocí definovaných proměnných lze zjistit, zda je překládáno pro mobilní či desktopovou platformu. Dle toho vrací příslušný Shell a také upravuje směrování na příslušnou stránku detailu topení, jejíž rozhraní je také upraveno dle platformy.}
+\caption{Statická třída {\it AppShellProvider} ze jmenného prostoru {\it SmartHeater.Maui.Providers} zprostředkovává hlavní rozhraní aplikace vestavěného typu {\it Shell}. Využívá možností direktiv pro překladač, kdy pomocí definovaných proměnných běhového prostředí lze zjistit, zda je překládáno pro mobilní či desktopovou platformu. Dle toho vrací {\it MobileShell} nebo {\it DesktopShell}, které jsou definovány ve složce {\it Pages}, a také upravuje směrování na příslušnou stránku detailu topení, jejíž rozhraní je také upraveno dle platformy.}
 \end{figure}
 
-Pages, Views, ViewModels
+Zdrojový kód aplikace obsahuje také platformě specifický kód ve složce {\it Platforms}. V rámci této práce byla testována pouze verze pro Windows, kde nebylo oproti vytvořené šabloně potřeba nic měnit, a platformu Android, pro kterou byl upraven pouze soubor {\it AndroidManifest.xml} přidáním vyžadovaných systémových oprávnění pro přístup k síťovému rozhraní zařízení.
 
-Converters, Helpers
+Verze pro platformy {\it iOS}, {\it Mac Catalyst} a {\it Tizen} nebyly v rámci této práce otestovány, kvůli nemožnosti přístupu k potřebnému hardware (smartphony {\it Apple iPhone} a počítače {\it Mac}). Díky vlastnostem použitého frameworku .NET MAUI a sdíleného zdrojového kódu lze ale předpokládat jejich plnou funkčnost.
+
+Samotný sdílený kód stránek aplikace v jazyce XAML se nachází ve složce {\it Pages}. Všechny dodržují návrhový vzor MVVM, kdy hlavní značka stránky {\it ContentPage} má specifikovaný svůj datový typ viewmodelu specifikovaný v parametru {\it x:DataType}. Toto umožňuje použití prvků viewmodelu pro datové vazby v XAML značkách nižší úrovně. V příslušném xaml.cs souboru je v parametru konstruktoru třídy stránky specifikován vyžadovaný viewmodel a přiřazen vlastnosti {\it BindingContext}. Po spuštění je instance objektu viewmodelu poskytnuta DI kontejnerem.
+
+\begin{figure}[hbt]
+\centering
+\frame{\includegraphics[height=7.1cm]{obrazky-figures/screenshots/1-windows.png}}
+\frame{\includegraphics[height=7.1cm]{obrazky-figures/screenshots/1-android-tabbar.png}}
+\caption{Ukázka použití {\it DesktopShell} pro Windows, který pro navigaci aplikace používá {\it Flyout} hamburger menu, a {\it MobileShell} pro Android, který používá navigaci pomocí záložek {\it TabBar}. Úvodní stránka aplikace zobrazuje seznam registrovaných topných jednotek (v případě testovací instalace je zobrazeno jedno zařízení Shelly 1PM).}
+\end{figure}
 
 \subsection{Stránky pro správu topení}
+Zobrazení seznamu registrovaných topení se nachází v souboru {\it HeatersPage.xaml}. Krom kolekce zobrazeném v XAML značce {\it CollectionView} obsahuje také tlačítka pro přidání topení a znovunačtení seznamu (využívá se například po prvotním spuštění, kdy ještě nebyla nakonfigurována IP adresa řídícího hubu na stránce nastavení).
 
+Stránka pro přidání topení {\it AddHeaterPage} obsahuje textová pole pro prvky třídy {\it HeaterListModel}, která je součástí kódu sdíleného mezi mobilní aplikací a řídícím hubem. Vyplněná instance {\it HeaterListModel} je v metodě viewmodelu {\it AddHeaterViewModel} serializována do formátu JSON a odeslána na webové API řídícího hubu pomocí HTTP metody {\it POST}. Toto jedno uživatelské rozhraní lze znovupoužít i pro editaci jednotky pomocí {\it Shell} podporované URI navigace. V případě editace je pro uložení použita metoda {\it PUT}.
+
+\begin{figure}[hbt]
+\includegraphics[width=0.72\textwidth]{obrazky-figures/code-applyqueryattributes.png}
+\caption{Viewmodel pro použití URI navigace implementuje rozhraní {\it IQueryAttributable} a jeho metodu {\it ApplyQueryAttributes} z jejíhož slovníkového parametru lze získat například informace o editovaném topení. Na stránku je možné se navigovat i bez parametrů, v tomto případě se pak jedná o přidání.}
+\end{figure}
+
+\begin{figure}[hbt]
+\centering
+\frame{\includegraphics[width=0.32\textwidth]{obrazky-figures/screenshots/2-add.jpg}}
+\frame{\includegraphics[width=0.32\textwidth]{obrazky-figures/screenshots/2-add-type.jpg}}
+\frame{\includegraphics[width=0.32\textwidth]{obrazky-figures/screenshots/2-edit.jpg}}
+\caption{Uživatelské rozhraní {\it AddHeaterPage} má v případě přidávání textová pole prázdná a v případě editace vyplněná dle vybraného topení. Výběr typu topení je zde pro případnou budoucí podporu více typů předpřipraven ve značce {\it Picker}.}
+\end{figure}
+
+Další částí pro samotné monitorování stavu topení je stránka detailu, která se zobrazí po kliknutí na položku v seznamu registrovaných topení na úvodní stránce {\it HeatersPage}. K této stránce patří viewmodel {\it HeaterDetailViewModel}, který implementuje podporu URI navigace s parametrem IP adresy topení. Ta je použita jako parametr metody {\it GetHeaterDataAsync}, která pomocí HTTP metody {\it GET} stáhne data o daném topení a deserializuje je do objektu typu {\it HeaterDetailModel}.
+
+Nahoře na stránce se nachází tlačítka s akcemi nad topením pro znovunačtení aktuálních informací o topení, navigaci na editační stránku topení a jeho smazání. Znovunačtení je provedeno voláním metody {\it ReLoad}, která opět volá {\it GetHeaterDataAsync} s parametrem IP adresy aktuálně zobrazeného topení. Editační tlačítko naviguje pomocí {\it Shell} na stránku {\it AddHeaterPage}, které předá parametry k editaci. Tlačítko smazání zobrazí dialog o potvzení smazání, a pokud je zvolena možnost {\it ''Ano''} posílá HTTP požadavek metodou {\it DELETE}. Zvolením {\it ''Ne''} je dialog uzavřen a požadavek na smazání serveru není odeslán.
+
+\begin{figure}[hbt]
+\includegraphics[width=0.72\textwidth]{obrazky-figures/code-gotoedit.png}
+\caption{Metoda {\it HeaterDetailViewModel} pro URI navigaci na editační stránku topení.}
+\end{figure}
+
+Tato stránka má dvě varianty na základě platformy (mobilní pro Android a iOS, a desktopovou pro ostatní), jak již bylo zmíněno u obrázku \ref{appshellprovider}. Kvůli tomuto rozdělení je kód pro zobrazení informací o topení extrahován do pohledu {\it HeaterDetailView} a {\it HeaterChartsView}. Tímto se stávají znovupoužitelnými a zamezuje se kopírování kódu.
+
+{\it HeaterDetailView} zobrazuje informace z objektu typu {\it HeaterDetailModel}, který mu je předán jako {\it BindingContext}.
+
+\pagebreak
+
+{\it HeaterChartsView} obsahuje grafy, které umožní uživateli zobrazit si a mít přehled o historii teploty v místnosti, kde je topení umístěno, a spotřebě elektrické energie. V aplikaci jsou pro tento účel využity grafy z knihovny {\it Syncfusion.Maui.Charts} dle \cite{maui-charts}. Tento pohled obsahuje viewmodel typu {\it HeaterChartsViewModel}, ve kterém jsou uloženy kolekce s daty pro zobrazení v grafech.
+
+Pro výběr časového období a následného stažení dat byl navíc přidán pohled {\it PeriodSelectorView}. Ten pracuje s vlastním viewmodelem typu {\it PeriodSelectorViewModel}, který v parametru konstruktoru přijímá delegát akce. Tlačítko pro načtení dat historie volá tento delegát po svém stisknutí. Předaná metoda v případě {\it HeaterChartsViewModel} použije HTTP metodu {\it GET} pro stažení dat ze zvoleného časového období o položkách databáze teploty a spotřeby. Získaná data jsou následně uložena do kolekcí, které mají datové vazby na grafy z knihovny {\it Syncfusion.Maui.Charts}.
+
+\begin{figure}[hbt]
+\centering
+\frame{\includegraphics[width=0.9\textwidth]{obrazky-figures/screenshots/3-heaterdetail.png}}
+\caption{Desktopové uživatelské rozhraní detailu topení zobrazuje grafy v {\it HeaterChartsView} na pravé straně od informací o topení v {\it HeaterDetailView} a tlačítky s dostupnými akcemi. Pro mobilní zařízení jsou z důvodu úzké obrazovky tyto pohledy umístěny pod sebou.}
+\end{figure}
 
 \subsection{Zobrazení dat o počasí}
+O zobrazení dat o venkovním počasí se stará stránka {\it WeatherPage}. K této stránce patří viewmodel typu {\it WeatherViewModel}, který se po své inicializaci pomocí HTTP metody {\it GET} pokusí získat informace o aktuální venkovní teplotě. Tato stránka také pro zobrazení historie počasí obsahuje grafy z knihovny {\it Syncfusion.Maui.Charts} dle \cite{maui-charts} a volbu časového období pomocí {\it PeriodSelectorView}.
+
+\begin{figure}[hbt]
+\centering
+\frame{\includegraphics[height=8.6cm]{obrazky-figures/screenshots/4-weather.png}}
+\frame{\includegraphics[height=8.6cm]{obrazky-figures/screenshots/4-periods-select.png}}
+\caption{Stránka zobrazení dat o počasí a výběr časového období.}
+\end{figure}
 
 
 \subsection{Stránka nastavení}
 
 
 \subsection{Pomocné třídy}
+Converters, Helpers
+
 \begin{figure}[hbt]
 \includegraphics[width=0.85\textwidth]{obrazky-figures/code-maui-converters0.png}
 \caption{}
@@ -382,7 +442,6 @@ Converters, Helpers
 \includegraphics[width=0.81\textwidth]{obrazky-figures/code-maui-icons.png}
 \caption{}
 \end{figure}
-
 
 \section{Předpověď strojovým učením}
 Úvod k {\it SmartHeaterModel}
