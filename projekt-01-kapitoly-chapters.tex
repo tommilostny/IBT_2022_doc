@@ -499,28 +499,69 @@ Generátor rovněž pracuje se stavem simulovaného topení a používá jej pro
 
 
 \subsection{Model strojového učení}
-Třída {\it SmartHeaterModel} trénu
+Trénování modelu {\it SmartHeaterModel} probíhá v metodě {\it TrainPipeline}, jíž jsou předána trénovací data načtená z generovaného csv souboru a objekt typu {\it MLContext}, což je dle \cite{mlnet_context} společný kontext pro všechny operace ML.NET, který poskytuje způsob, jak vytvořit komponenty pro přípravu dat, konstrukci funkcí, trénování, predikci a vyhodnocení modelu.
 
 \begin{figure}[hbt]
-\includegraphics[width=0.95\textwidth]{obrazky-figures/ml-pipeline.png}
-\caption{...}
+\includegraphics[width=0.8\textwidth]{obrazky-figures/ml-pipeline.png}
+\caption{Metoda trénování modelu strojového učení si prvně vytvoří {\it pipeline} pro předpovědi nad časovými řadami používající SSA. Tato část zdrojového kódu byla částečně vygenerována nástrojem {\it Model Builder}, který poskytuje automatické trénování na základě poskytnutých dat. Na konfigurované {\it pipeline} je volána metoda {\it Fit}, která provádí samotné trénování modelu hledáním funkce blížící se bodům předaných trénovacích dat.}
 \end{figure}
 
-\pagebreak
+Celkově za dva roky po minutových krocích představuje 1 051 200 bodů trénovacích dat. Časová řada je parametrem {\it seriesLength} vzorkována ve 12minutových intervalech, což dává celkem 87 600 vzorků, které jsou jednotlivě analyzovány ve 4minutových oknech. Model je pak nastaven, aby prováděl předpovědi v horizontu 10 minut. 
+
+Nakonec dle \cite{mlnet_tutorial} víme, že předpověď je informovaný odhad a není vždy 100\% přesná. Proto je dobré znát rozsah hodnot v nejlepším a nejhorším scénáři, jak je definováno horní a dolní hranicí. V tomto případě je úroveň spolehlivosti pro dolní a horní mez nastavena na 95 \%. Čím vyšší hodnota, tím širší je rozsah mezi horní a dolní hranicí pro dosažení požadované úrovně spolehlivosti.
 
 \begin{figure}[hbt]
 \includegraphics[width=\textwidth]{obrazky-figures/ml-training.png}
-\caption{  ... }
+\caption{Řídící hub na začátku svého hlavního souboru {\it Program.cs} obsahuje volání metody {\it EnsureTrainedAsync}, která zkontroluje existenci souboru {\it SmartHeaterModel.zip}, který obsahuje vytrénovaný model, a pokud neexistuje pokračuje ke generování trénovacích a testovacích dat, pokud opět neexistují. Vytvořená trénovací data načte do proměnné typu {\it IDataView} a předá je metodě {\it TrainPipeline}. Nakonec je z vytrénovaného modelu vytvořen objekt typu {\it TimeSeriesPredictionEngine}, který se voláním metody {\it CheckPoint} uloží do souboru {\it SmartHeaterModel.zip}.}
 \end{figure}
 
-\noindent Metoda {\it Evaluate} dle \cite{mlnet_tutorial} provede výpočet relevantních metrik nad testovacími daty oproti testovací předpovědi:
+\noindent Na závěr je po uložení vytrénovaného modelu načten i soubor s testovacími daty a předán metodě {\it Evaluate}, která dle \cite{mlnet_tutorial} provede výpočet relevantních metrik nad testovacími daty oproti testovací předpovědi:
 \begin{itemize}
-    \item {\it Střední absolutní chyba} (MSE) měří, jak blízko jsou předpovědi skutečné hodnotě. Tato hodnota se pohybuje mezi 0 a nekonečnem. Čím blíže k 0, tím lepší je kvalita modelu.
-    \item {\it Střední kvadratická odchylka} (RMSE) shrnuje chybu v modelu. Tato hodnota se pohybuje mezi 0 a nekonečnem. Čím blíže k 0, tím lepší je kvalita modelu.
+    \item {\it Střední absolutní chyba} (MSE) měří, jak blízko jsou předpovědi skutečné hodnotě.
+    \item {\it Střední kvadratická odchylka} (RMSE) shrnuje chybu v modelu.
 \end{itemize}
 
+Hodnota obou metrik se pohybuje mezi 0 a nekonečnem a u obou platí, že, čím blíže je hodnota k 0, tím lepší je kvalita modelu.
 
-\subsection{Algoritmus rozhodování o ovládání topení}
+Následně je po postupu generování, trénování i vyhodnocení modelu strojového učení metoda {\it EnsureTrainedAsync} dokončena a je inicializováno webové API běžící na frameworku ASP.NET Core a model je připraven pro použití v rámci ovládání reálných topení.
+
+\pagebreak
+%Algoritmus rozhodování o ovládání topení
+
+\subsection{Ovládání topení na základě předpovědi strojového učení}
+Vytrénovaný model strojového učení je použit v rámci plánovaného periodického spouštění pomocí knihovny {\it Coravel} \cite{coravel}. Pro tento účel je v souboru {\it Program.cs} řídícího hubu tento plánovač nakonfigurován, aby v minutových intervalech pravidelně spouštěl metodu {\it Invoke} implementovanou ve třídě {\it MLInvocable}.
+
+\begin{figure}[hbt]
+\includegraphics[width=0.72\textwidth]{obrazky-figures/code-invoke.png}
+\caption{Asynchronní metoda {\it Invoke} využívá službu rozhraní {\it IHeatersRepository} jejíž implementace je doplněna kontejnerem DI. Tímto způsobem získá kolekci všech registrovaných topení, na kterých provede rozhodnutí o jejich ovládání voláním metody {\it SmartHeaterActionAsync}.}
+\end{figure}
+
+Metoda {\it SmartHeaterActionAsync} získá službu pro ovládání topení, ze které následně vyčte jeho aktuální stav. Pro vytvoření objektu {\it ModelInput} je vypočten rozdíl od referenční teploty nastavené u konkrétní topné jednotky. Dále je volána metoda {\it Forecast}, které je krom vytvořeného vstupu modelu předána i IP adresa aktuálně ovládaného topení.
+
+Každému ovládanému topení je přiřazen vlastní zip soubor modelu. Ten začíná jako kopie souboru {\it SmartHeaterModel.zip} a postupem času je po predikcích ukládán metodou {\it Checkpoint}. Tímto způsobem je dosaženo postupné zlepšení modelu díky získaným zkušenostem s konkrétní topnou jednotkou.
+
+\begin{figure}[hbt]
+\includegraphics[width=\textwidth]{obrazky-figures/code-create-engine.png}
+\caption{Metoda {\it Forecast} využívá pro načtení {\it TimeSeriesPredictionEngine} metodu {\it CreatePredictEngine}. Ta nejdříve zjistí existenci souboru modelu pro konkrétní topení a v případě, že neexistuje jej vytvoří. Následně tento model načte a vrátí. Metoda {\it Forecast} na něm dále zavolá metodu {\it Predict}, jejíž výstup typu {\it ModelOutput} představuje výsledek předpovědi s nímž může volající metoda {\it SmartHeaterActionAsync} dál pracovat.}
+\end{figure}
+
+Výsledek předpovědi je nyní možné použít pro rozhodnutí o budoucím stavu topení. Proto je volána metoda {\it GetDecisionMetrics}, která získá tři rozhodující metriky:
+\begin{itemize}
+    \item Dochází k {\it přetápění}, nebo je teplota v místnosti vyšší externím vlivem. Tento případ nastává, pokud jsou všechny hodnoty předpovědí větší než 0.
+    \item Dochází k {\it nedostatečnému vytápění}, pokud jsou všechny hodnoty předpovědi menší než 0.
+    \item Hodnoty předpovědi jsou kolem 0, tak je rozhodnuto dle směru předpovězené funkce.
+\end{itemize}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{obrazky-figures/mlalgorithm.png}
+\caption{Konečného rozhodnutí je tedy dosaženo následujícím způsobem. V případě přetápění je topení odeslán příkaz {\it vypnout} a v případě nedostatečného vytápění je odeslán příkaz {\it zapnout}. V obou těchto případech tedy nezáleží na směru předpovězené funkce. V posledním případě, kdy se hodnoty předpovězené funkce pohybují kolem 0, je topení zapnuto, pokud je směr funkce rostoucí, a vypnuto v případě klesajícího směru (vývoj reálné teploty v místnosti by měl tedy odpovídat směru předpovědi).}
+\end{figure}
+
+\begin{figure}[H]
+\includegraphics[width=0.76\textwidth]{obrazky-figures/code-get-ml-metrics.png}
+\caption{Metoda {\it GetDecisionMetrics} využívá k výpočtu těchto metrik koncept {\it odložené inicializace}, kterou umožňuje .NET třída {\it Lazy}. Tohoto principu je využito například v případě, kdy je již rozhodnuto o stavu topení na základě aktuálního přetápění, je již zbytečné plýtvat zdroji na výpočet směru předpovězené funkce.}
+\end{figure}
 
 
 \section{Sledování chování systému}
