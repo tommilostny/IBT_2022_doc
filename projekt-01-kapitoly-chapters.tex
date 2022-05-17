@@ -22,15 +22,13 @@ Základním rozdělením je vytápění samotného prostoru (infraohřívače, k
 
 Pro tuto práci byl použit nástěnný přímotopný konvektor \textbf{AEG WKL 1003 U}. Jedná se tedy o konvekční ohřívač, což je dle \cite{convectionHeater} typ ohřívače, který využívá k ohřevu a cirkulaci vzduchu konvekční proudy. Tyto proudy cirkulují v celém těle spotřebiče a přes jeho topné těleso. Tento proces na principu vedení tepla ohřívá vzduch, snižuje jeho hustotu oproti chladnějšímu vzduchu a způsobuje jeho stoupání. Jak molekuly zahřátého vzduchu stoupají, vytlačují molekuly chladnějšího vzduchu dolů směrem k topnému zařízení. Vytlačený chladný vzduch se v důsledku toho ohřeje, tím je snížena jeho hustota, stoupá vzhůru směrem ke stropu a cyklus se opakuje.
 
-\begin{figure}[hbt]
+Konvektor AEG WKL 1003 U pracuje s pevným příkonem 1000 W, který spíná vestavěným termostatem s nastavením teploty výběrem z úrovní 1 až 7, protizámrazovou ochranu na 6 °C a volbou MAX, která by měla vytopit místnost až na 30 °C. Na pravé straně má také fyzický spínač zapnuto/vypnuto.
+
+\begin{figure}[H]
 \centering
-\includegraphics[width=0.37\textwidth]{obrazky-figures/aeg-wkl-1003u.png}
-\caption{Fotografie instalovaného přímotopného konvektoru AEG WKL 1003 U}
+\includegraphics[width=0.42\textwidth]{obrazky-figures/aeg-wkl-1003u.png}
+\caption{Fotografie přímotopného konvektoru AEG WKL 1003 U instalovaného v malém pokoji v jednopodlažním rodinném domě.}
 \end{figure}
-
-
-Konvektor AEG WKL 1003 U pracuje s pevným příkonem 1000 W, který spíná vestavěným termostatem s nastavením teploty výběrem z úrovní 1 až 7, protizámrazovou ochranu na 6 °C a volbu MAX, která by měla vytopit místnost až na 30 °C. Na pravé straně má také fyzický spínač zapnuto/vypnuto.
-
 
 \section{Chytrý termostat Nest Learning}
 Zajímavým zástupcem chytrých termostatů je Nest Learning Thermostat vyvíjený výrobcem Nest Labs. Dle \cite{nest} se jedná o programovatelný a samoučící se Wi-Fi termostat, který optimalizuje vytápění a chlazení domácností i podniků za účelem úspory energie. Zařízení je založeno na algoritmu strojového učení, kdy první týdny musí uživatelé regulovat termostat, aby poskytli referenční soubor dat. Termostat se pak může naučit rozvrh lidí, na jakou teplotu jsou zvyklí a kdy. Interagovat s termostatem lze klikáním a posouvání jeho ovládacího kolečka, anebo mobilní aplikací Google Home. Pomocí vestavěných senzorů a umístění telefonů se může přepnout do režimu úspory energie, když si uvědomí, že nikdo není doma.
@@ -39,7 +37,7 @@ Termostaty Nest jsou kompatibilní s většinou standardních systémů HVAC (to
 
 \begin{figure}[hbt]
 \centering
-\includegraphics[width=0.4\textwidth]{obrazky-figures/nest.png}
+\includegraphics[width=0.32\textwidth]{obrazky-figures/nest.png}
 \caption{Přední obrazovka termostatu Nest}
 \end{figure}
 
@@ -563,21 +561,51 @@ Výsledek předpovědi je nyní možné použít pro rozhodnutí o budoucím sta
 \caption{Metoda {\it GetDecisionMetrics} využívá k výpočtu těchto metrik koncept {\it odložené inicializace}, kterou umožňuje .NET třída {\it Lazy}. Tohoto principu je využito například v případě, kdy je již rozhodnuto o stavu topení na základě aktuálního přetápění, je již zbytečné plýtvat zdroji na výpočet směru předpovězené funkce.}
 \end{figure}
 
+\pagebreak
 
 \section{Sledování chování systému}
-Jak to sleduju v StatsCollectorInvocable atd...
+Sběr dat pro monitorování topení je prováděn třídou {\it StatsCollectorInvocable}, která je periodicky spouštěna plánovačem {\it Coravel} podobně jako samotné ovládání strojovým učením. Má na starosti sběr dat o všech registrovaných topných jednotkách (teplota v místnosti a spotřeba elektrické energie) a o počasí, která získá pomocí služeb {\it IHeaterControlService} a {\it IWeatherService} zmíněné dříve. Následně je pomocí služby {\it IDatabaseService} zapíše do databáze. Takto získaná data jsou dále také zpřístupněna uživateli mobilní aplikace.
 
+Kód metody {\it Invoke} této třídy je spouštěn v 10sekundových intervalech. Bylo potřeba zvolit periodu dostatečně krátkou pro zajištění dostatečně detailní data pro zachycení různých vlivů prostředí na teplotu v místnosti.
 
-\subsection{Původní termostat}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.43\textwidth]{obrazky-figures/test-term1.jpg}
+\includegraphics[width=0.43\textwidth]{obrazky-figures/test-term2.jpg}
+\caption{Fotografie nastavení termostatu použité při testování. Původní nastavení bez ovládání strojovým učením mělo zajistit teplotu v místnosti okolo 23 °C. Na druhé fotografii je tento termostat nastaven na hodnotu MAX a je tedy plně ovládán řídícím softwarem běžícím na Raspberry Pi.}
+\end{figure}
 
+Chování původního termostatu přímotopného konvektoru bylo sledováno v období od 8. února 2022 do 27. března 2022. Zařízení Shelly 1PM, ze kterého byla čtena data bylo instalováno a nastaveno tak, aby bylo neustále zapnuté a zastávalo tedy pouze roli sondy umístěné mezi topení a zásuvku.
 
+Na základě pozorovaného chování původního termostatu byl právě navržen generátor trénovacích dat pro strojové učení, jímž generovaný průběh by měl odrážet spínání topení a nárůsty a poklesy teploty v určité toleranci oproti té referenční.
 
-\subsection{Ovládání strojovým učením}
+Získaná data jsou zobrazena v grafech získané z webového prostředí databáze InfluxDB. Hodnoty jsou vzhledem k širším pohledům agregovány a nejsou zobrazeny pouze hodnoty 0 nebo \textasciitilde1000 W.
+
+\begin{figure}[hbt]
+\centering
+\includegraphics[width=\textwidth]{obrazky-figures/test-graph-noml.png}
+\caption{Typické chování původního termostatu ukazuje například 16. únor 2022. Na tomto grafu pozorování je vidět, že topení je v průběhu dne schopno udržovat příjemnou teplotu. Stále je však stejným způsobem spínáno i v případě, že externím vlivem nastává situace ''přetopení''.}
+\end{figure}
+
+\begin{figure}[hbt]
+\centering
+\includegraphics[width=\textwidth]{obrazky-figures/test-graph-ml.png}
+\caption{Při použití softwarového ovládání na příkladu ze 4. dubna 2022 lze pozorovat podobné stabilní udržení teploty. Navíc je ale toto řešení schopné reagovat na výkyvy teploty, a topení se v případě situace možného přetápění nespíná. V chladné dny jsou tyto výkyvy způsobeny různými externími zdroji (například vytápění rodinného domu dřevem v krbových kamnech).}
+\end{figure}
+
+\begin{figure}[hbt]
+\centering
+\includegraphics[width=\textwidth]{obrazky-figures/test-weather.png}
+\caption{V závěrečné části testování lze například na datech z 14. a 15. dubna 2022 pozorovat vliv vyšší venkovní teploty, na který je řízení topení schopno reagovat vypnutím topení na delší dobu. Topení se následně například spíná až s večerním poklesem venkovní teploty.}
+\end{figure}
 
 
 \chapter{Závěr}
 \label{zaver}
+Cílem této práce bylo vytvořit systém chytré domácnosti se specifickým zaměřením na domácí elektrické vytápění. Na základě analýzy existujících řešení se podařilo navrhnout a implementovat kompletní systém běžící na platformě .NET, která poskytla všestranné nástroje. Vytvořený systém pracuje se sítí přímotopných konvektorů, které jsou připojeny pomocí Wi-Fi relé Shelly 1PM. Pro uživatelské pohodlí se rovněž podařila vytvořit multiplatformní mobilní aplikace umožňující snadnou správu a monitorování instalovaných topných jednotek.
 
-Integrace do populární platformy typu Home Assistant, Telegram Bot, přidat krom vytápění i chlazení. Možné rozšíření podpory dalších zařízení krom Shelly 1PM, například dříve zmíněnými chytrými přímotopy.
+Systém je následně schopen tato připojená topení automaticky ovládat s využitím logiky založené na předpovědi strojovým učením nad časovou řadou. Topení jsou ovládána jednotlivě a vytvořený systém je schopen se pro každé z nich přizpůsobit místnosti, ve které je dané topení instalováno.
+
+Během vývoje tohoto systému bylo myšleno i na jeho budoucí rozšíření o možnou podporu dalších zařízení mimo Shelly 1PM (například podporu jiných systémů vytápění, nebo existující chytré přímotopné konvektory). Vytvořená klientská mobilní aplikace také otevírá možnost budoucí implementace dalších klientských služeb (například integrace do otevřené platformy chytré domácnosti typu {\it Home Assistant}). Nakonec na základě dlouhodobého testu vytvořeného systému ovládání by bylo například síť topných jednotek rozšířit o systém chlazení, kterým by byla zajištěna spolehlivější regulace výkyvů teploty v místnosti a širší možnosti využití v teplejších letních měsících.
 
 %===============================================================================
