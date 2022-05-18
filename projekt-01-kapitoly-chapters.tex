@@ -1,13 +1,10 @@
-% Tento soubor nahraďte vlastním souborem s obsahem práce.
-%=========================================================================
-% Autoři: Michal Bidlo, Bohuslav Křena, Jaroslav Dytrych, Petr Veigend a Adam Herout 2019
 \chapter{Úvod}
 
-S nástupem popularity chytré domácnosti a rozšířené možnosti veškerá připojená zařízení jednoduše ovládat i na dálku s požitím mobilního telefonu byly rozšířeny i způsoby domácího vytápění v podobě chytrých termostatů. V současné době jsou tato řešení ovšem často velmi nákladná a bývají také často omezeny na existující infrastrukturu ústředního vytápění se zdrojem tepla a rozvody.
+S nástupem popularity chytré domácnosti a rozšířené možnosti veškerá připojená zařízení jednoduše ovládat i na dálku s požitím mobilního telefonu byly rozšířeny i způsoby domácího vytápění v podobě chytrých termostatů. V současné době jsou tato řešení ovšem často velmi nákladná a bývají také často omezeny na infrastrukturu ústředního vytápění se zdrojem tepla a rozvody.
 
-Moje domácnost například tuto infrastrukturu vůbec nemá. Místo toho je v každé místnosti umístěn přímotopný konvektor připojený do zásuvky. Tyto jednotky mají výhodu ve snadné instalaci, možnosti samostatně a nezávisle fungovat, i úsporném provozu, ale nelze na nich přímo nastavit požadovanou teplotu v místnosti, tudíž může docházet k přetápění. Navíc je do ovládání chytrým centrálním termostatem není možné zapojit.
+Moje domácnost například tuto infrastrukturu vůbec nemá. Místo toho je v každé místnosti umístěn přímotopný konvektor připojený do zásuvky. Výhodami těchto jednotek jsou snadná instalace, možnost samostatně a nezávisle fungovat, i úsporný provoz. Nelze na nich však přímo nastavit požadovanou teplotu v místnosti, tudíž může docházet k přetápění. Navíc je do ovládání chytrým centrálním termostatem není možné zapojit.
 
-Cílem této práce je tedy navrhnout prototyp systému chytré domácnosti zaměřené na vytvoření sítě topných jednotek, které bude připojením k Wi-Fi možné vzdáleně monitorovat a ovládat. Pro tento účel bylo zvoleno relé Shelly 1PM, které umožňuje přímotop připojit do sítě Wi-Fi, sledovat jeho spotřebu, a navíc s pomocí teplotního čidla měřit teplotu v okolí. Toto relé tedy zajistí potřebnou funkcionalitu za nízkou cenu na jednotku. Pro centrální řízení této sítě bude použit minipočítač Raspberry Pi 4 Model B. V rámci softwarové části bude také pro pohodlí uživatele vytvořena mobilní aplikace, ve které bude možné nakonfigurovat nastavení jednotlivých topení i jejich další monitorování.
+Cílem této práce je tedy vyvinout systém chytré domácnosti zaměřený na vytvoření sítě topných jednotek, které bude připojením k Wi-Fi možné vzdáleně monitorovat a ovládat. Pro tento účel bylo zvoleno relé Shelly 1PM, které umožňuje přímotop připojit do sítě Wi-Fi, sledovat jeho spotřebu, a navíc s pomocí teplotního čidla měřit teplotu v okolí. Toto relé tedy zajistí potřebnou funkcionalitu za nízkou cenu na jednotku. Pro centrální řízení této sítě bude použit minipočítač Raspberry Pi 4 Model B. V rámci softwarové části bude také pro pohodlí uživatele vytvořena mobilní aplikace, ve které bude možné nakonfigurovat nastavení jednotlivých topení i jejich další monitorování.
 
 Toto řešení by tedy mělo v existující domácnosti používající „hloupé“ přímotopné konvektory zajistit cenově dostupný systém, který by měl zvýšit uživatelské pohodlí i budoucí energetická úspora.
 
@@ -16,7 +13,7 @@ Toto řešení by tedy mělo v existující domácnosti používající „hloup
 Tato kapitola představuje v jakém testovacím prostředí poběží vytvořený systém chytrého vytápění a shrnuje existující řešení, které byly inspirací během implementace řešení.
 
 \section{Elektrické vytápění}
-Dle \cite{electricHeating} elektrické vytápění je proces, při kterém se elektrická energie přeměňuje na tepelnou energii. Běžnými aplikacemi jsou prostorové vytápění, ohřev vody a průmyslové procesy. Elektrický ohřívač je elektrické zařízení, které přeměňuje elektrický proud na teplo. Topné těleso uvnitř každého elektrického ohřívače je elektrický odpor a funguje na principu Jouleova ohřevu: elektrický proud procházející rezistorem přemění tuto elektrickou energii na tepelnou energii.
+Dle \cite{electricHeating} elektrické vytápění je proces, při kterém se elektrická energie přeměňuje na tepelnou energii. Běžnými aplikacemi jsou prostorové vytápění, ohřev vody a průmyslové procesy. Elektrický ohřívač je elektrické zařízení, které přeměňuje elektrický proud na teplo. Topné těleso uvnitř každého ohřívače je elektrický odpor a funguje na principu {\it Jouleova ohřevu}: elektrický proud procházející rezistorem přemění tuto elektrickou energii na tepelnou.
 
 Základním rozdělením je vytápění samotného prostoru (infraohřívače, konvekční ohřívače, teplovzdušné ventilátory, akumulační kamna, elektrické podlahové vytápění, systém vytápění osvětlením a tepelná čerpadla) a vytápění kapalinou (ponorné ohřívače, cirkulační potrubní ohřívače a ohřívače elektrod).
 
@@ -26,12 +23,12 @@ Konvektor AEG WKL 1003 U pracuje s pevným příkonem 1000 W, který spíná ves
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.42\textwidth]{obrazky-figures/aeg-wkl-1003u.png}
+\includegraphics[width=0.47\textwidth]{obrazky-figures/aeg-wkl-1003u.png}
 \caption{Fotografie přímotopného konvektoru AEG WKL 1003 U instalovaného v malém pokoji v jednopodlažním rodinném domě.}
 \end{figure}
 
 \section{Chytrý termostat Nest Learning}
-Zajímavým zástupcem chytrých termostatů je Nest Learning Thermostat vyvíjený výrobcem Nest Labs. Dle \cite{nest} se jedná o programovatelný a samoučící se Wi-Fi termostat, který optimalizuje vytápění a chlazení domácností i podniků za účelem úspory energie. Zařízení je založeno na algoritmu strojového učení, kdy první týdny musí uživatelé regulovat termostat, aby poskytli referenční soubor dat. Termostat se pak může naučit rozvrh lidí, na jakou teplotu jsou zvyklí a kdy. Interagovat s termostatem lze klikáním a posouvání jeho ovládacího kolečka, anebo mobilní aplikací Google Home. Pomocí vestavěných senzorů a umístění telefonů se může přepnout do režimu úspory energie, když si uvědomí, že nikdo není doma.
+Zajímavým zástupcem chytrých termostatů je Nest Learning Thermostat vyvíjený výrobcem Nest Labs. Dle \cite{nest} se jedná o programovatelný a samoučící se Wi-Fi termostat využívaný k optimalizaci vytápění a chlazení domácností i podniků za účelem úspory energie. Zařízení je založeno na algoritmu strojového učení, kdy první týdny musí uživatelé regulovat termostat, aby poskytli referenční soubor dat. Termostat se pak může naučit rozvrh lidí, na jakou teplotu jsou zvyklí a kdy. Interagovat s termostatem lze klikáním a posouvání jeho ovládacího kolečka, anebo mobilní aplikací Google Home. Pomocí vestavěných senzorů a umístění telefonů se může přepnout do režimu úspory energie, když si uvědomí, že nikdo není doma.
 
 Termostaty Nest jsou kompatibilní s většinou standardních systémů HVAC (topení, větrání a klimatizace), které využívají ústřední vytápění a chlazení. Do prostředí s přímotopnými konvektory tedy nasadit nelze.
 
@@ -69,11 +66,13 @@ Tato kapitola se zabývá návrhem softwarové i hardwarové části a nastíní
 
 \section{Shelly 1PM}
 \label{navrh-shelly}
-Shelly 1PM (série 1 + {\it power measurement}) je Wi-Fi relé, které bylo zvoleno pro svou nízkou cenu a širokou funkcionalitu. Umožňuje spínání zásuvky, do které je zapojen přímotop, monitorování její spotřeby ve Wattech a s pomocí přídavného modulu měřit i teplotu v místnosti. Po zapojení hardware je ve vestavěném webovém rozhraní možné toto relé připojit k domácí Wi-Fi síti a mimo jiné mu například přiřazení statické IP adresy, nastavení zdrojového napětí 110 nebo 220 V, nastavení časové zóny nebo aktualizace firmware \cite{shelly_1pm}.
+Shelly 1PM (série 1 + {\it power measurement}) je Wi-Fi relé, které bylo zvoleno pro svou nízkou cenu a širokou funkcionalitu. Umožňuje spínání zásuvky, do které je zapojen přímotop, monitorování její spotřeby ve Wattech a s pomocí přídavného modulu i měřit teplotu.
+
+Po zapojení hardware je ve vestavěném webovém rozhraní možné toto relé připojit k domácí Wi-Fi síti a mimo jiné mu například přiřazení statické IP adresy, nastavení zdrojového napětí 110 nebo 220 V, nastavení časové zóny nebo aktualizace firmware \cite{shelly_1pm}.
 
 Pro komunikaci se Shelly 1PM nabízí výrobce kompatibilitu s populárními platformami Android, iOS, Amazon Alexa, Google Assistant a domácí automatizační servery s použitím protokolů MQTT, CoAP a REST API \cite{shelly_1pm}. V této práci bude později využita komunikace přes rozhraní REST.
 
-Přídavný modul teplotního senzoru \cite{shelly_tempaddon} doplňuje základní funkcionalitu relé Shelly 1 nebo 1PM o získání teploty naměřené v místnosti (dle nastavení ve °C nebo °F). K tomuto modulu je tedy ještě potřeba připojit samotný senzor DS18B20 \cite{shelly_tempsensor}, které lze připojit dokonce až 3, nebo DHT22. Pro tento projekt byl zvolen DS18B20 a bude se pracovat s teplotou ve °C.
+Přídavný modul teplotního senzoru \cite{shelly_tempaddon} doplňuje základní funkcionalitu relé Shelly 1 nebo 1PM o získání teploty naměřené v místnosti (dle nastavení ve °C nebo °F). K tomuto modulu je tedy ještě potřeba připojit samotný senzor DS18B20 \cite{shelly_tempsensor}, které lze připojit dokonce až 3, nebo DHT22. Pro tento projekt byl zvolen DS18B20 přímo od výrobce Shelly  a bude se pracovat s teplotou ve °C.
 
 \begin{figure}[hbt]
 \centering
@@ -82,7 +81,7 @@ Přídavný modul teplotního senzoru \cite{shelly_tempaddon} doplňuje základn
 \caption{Přídavný modul pro Shelly 1/1PM a teplotní senzor DS18B20}
 \end{figure}
 
-V této práci bude použito následující zapojení, kdy relé Shelly 1PM bude vloženo do prodlužovacího kabelu, skrze který bude topení připojeno k zásuvce. Tento postup byl zvolen pro zjednodušení prvotní testovací instalace. Zařízení je jinak možné instalovat více způsoby, například přímo do zásuvky ve zdi.
+V této práci bude použito zapojení zobrazené v následujícím diagramu. Relé Shelly 1PM bude vloženo do prodlužovacího kabelu, skrze který bude přímotopný konvektor připojen k zásuvce. Tento postup byl zvolen pro zjednodušení prvotní testovací instalace. Zařízení je jinak možné instalovat více způsoby, například přímo do zásuvky zabudované ve stěně budovy.
 
 \begin{figure}[hbt]
 \centering
@@ -92,15 +91,15 @@ V této práci bude použito následující zapojení, kdy relé Shelly 1PM bude
 
 \begin{figure}[hbt]
 \centering
-\includegraphics[width=0.44\linewidth]{obrazky-figures/shelly-photo1.png}
-\includegraphics[width=0.44\linewidth]{obrazky-figures/shelly-photo2.png}
+\includegraphics[width=0.47\linewidth]{obrazky-figures/shelly-photo1.png}
+\includegraphics[width=0.47\linewidth]{obrazky-figures/shelly-photo2.png}
 \caption{Fotografie instalovaného Shelly 1PM s modulem teplotního senzoru a DS18B20 umístěný v blízkosti ovládaného přímotopu}
 \end{figure}
 
 \section{Raspberry Pi 4 Model B}
-Jako centrální prvek, který bude komunikovat s jednotlivými topeními připojených pomocí relé Shelly, bylo zvoleno Raspberry Pi 4 Model B ve variantě s RAM 2 GB LPDDR4 (další možné varianty jsou s 1, 4 nebo 8 GB). Dle \cite{raspberry_pi} se jedná o nejnovější a nejvýkonnější model z oblíbené řady jednodeskových počítačů Raspberry Pi. Mezi jeho klíčové vlastnosti patří výkonný 64bitový čtyřjádrový procesor, podpora dvou displejů v rozlišení až 4K prostřednictvím dvojice micro-HDMI portů, hardwarové dekódování videa až 4K 60 FPS, dvoupásmová bezdrátová LAN 2,4/5,0 GHz, Bluetooth 5.0, Gigabit Ethernet, USB 3.0 a napájení 5V DC přes USB-C, GPIO header, nebo PoE ({\it Power over Ethernet}).
+Jako centrální prvek, který bude komunikovat s jednotlivými topeními připojených pomocí relé Shelly, bylo zvoleno Raspberry Pi 4 Model B ve variantě s RAM 2 GB LPDDR4 (další možné varianty jsou s 1, 4 nebo 8 GB). Dle \cite{raspberry_pi} se jedná o nejnovější a nejvýkonnější model z oblíbené řady jednodeskových počítačů Raspberry Pi. Mezi jeho klíčové vlastnosti patří výkonný 64bitový čtyřjádrový procesor, podpora dvou displejů v rozlišení až 4K prostřednictvím dvojice micro-HDMI portů, hardwarové dekódování videa až 4K 60 FPS, dvoupásmová bezdrátová LAN 2,4/5,0 GHz, Bluetooth 5.0, Gigabit Ethernet, USB 2.0/3.0 a napájení 5V DC přes USB-C, GPIO header, nebo PoE ({\it Power over Ethernet}).
 
-Zajímavý pro použití v této práci je právě svým procesorem Broadcom BCM2711, což je 64bitové čtyřjádrové SoC ({\it System on Chip}) Cortex-A72 běžící na taktovací frekvenci 1,5 GHz \cite{raspberry_pi}. Ten by tedy pro správu připojených topení a zpracování předpovědí strojovým učením měl zajistit optimální výkon. Architektura ARM v8 je také podporována virtuálním běhovým prostědím CLR ({\it Common Language Runtime}), pod kterým bude běžet software napsaný v jazyce C\#.
+Zajímavý pro použití v této práci je právě svým procesorem Broadcom BCM2711. Jedná se o 64bitové čtyřjádrové SoC ({\it System on Chip}) Cortex-A72 běžící na taktovací frekvenci 1,5 GHz \cite{raspberry_pi}. Ten by tedy pro správu více připojených topení a zpracování předpovědí strojovým učením měl zajistit optimální výkon. Architektura ARM v8 je také podporována virtuálním běhovým prostědím CLR ({\it Common Language Runtime}), pod kterým bude běžet software napsaný v jazyce C\#.
 
 \begin{figure}[hbt]
 \centering
@@ -115,19 +114,19 @@ Tento jazyk také obsahuje řadu funkcí, které napomáhají vytváření robus
 
 \begin{itemize}
     \item {\it Garbage Collection} automaticky uvolňuje alokovanou paměť obsazenou nedostupnými objekty
-    \item {\it Nullable types} (typy s možností nabytí hodnoty null) chrání před proměnnými, které se neodkazují na alokované objekty.
-    \item {\it Zpracování výjimek} poskytuje strukturovaný a rozšiřitelný přístup k detekci chyb a obnově chodu programu.
+    \item {\it Nullable types} (typy s možností nabytí hodnoty null) zavádějí pokročilejší ochranu před proměnnými, které se neodkazují na alokované objekty.
+    \item {\it Zpracování výjimek} poskytuje strukturovaný a rozšiřitelný přístup k detekci chybových stavů a obnově chodu programu.
     \item {\it Lambda výrazy} podporují techniky funkcionálního programování.
-    \item Syntaxe {\it LINQ (Language Integrated Query)} vytváří společný vzor pro práci s daty z jakéhokoliv zdroje.
+    \item Syntaxe {\it LINQ (Language Integrated Query)} představuje společný vzor využívající lambda výrazy pro práci s daty z jakéhokoliv zdroje.
     \item Jazyková podpora pro asynchronní operace poskytuje syntaxi pro vytváření distribuovaných systémů.
     \item Má jednotný typový systém, kde všechny typy, včetně primitivních typů jako jsou int a double, dědí z jediného kořenového typu object. Všechny typy tedy sdílí sadu běžných operací (například metoda ToString). Hodnoty jakéhokoliv typu mohou být uloženy, přemisťovány a manipulovány konzistentním způsobem. Podporuje uživatelsky definované referenční (třídy a záznamy) i hodnotové typy (struktury). Třídy kolekcí navíc obsahují iterátory, které umožňují definovat vlastní chování v klientském kódu (například v cyklech foreach).
 \end{itemize}
 
-Programy v jazyce C\# ve virtuálním systému zvaném {\it Common Language Runtime} (CLR). CLR je implementace {\it common language infrastructure} (CLI), mezinárodního standardu od společnosti Microsoft. Zdrojový kód napsaný v C\# je kompilován do {\it intermediate language} (IL), který odpovídá specifikaci CLI. Kód IL a prostředky, jako jsou řetězce a bitmapy, jsou uloženy v souborech sestavení obvykle s příponou .dll, který také obsahuje manifest s dalšími informacemi, jako jsou typy, verze programu nebo kultura (pro vícejazyčné aplikace). Když je program v C\# spuštěn, sestavení se načte do CLR, které provádí Just-In-Time kompilaci pro převod kódu z IL do nativních strojových instrukcí.
+Programy v jazyce C\# ve virtuálním systému zvaném {\it Common Language Runtime} (CLR). CLR je implementace {\it common language infrastructure} (CLI), mezinárodního standardu od společnosti Microsoft. Zdrojový kód napsaný v C\# je kompilován do {\it intermediate language} (IL), který odpovídá specifikaci CLI. Kód IL a prostředky, jako jsou řetězce, bitmapy a další, jsou uloženy v souborech sestavení obvykle s příponou .dll, který také obsahuje manifest s dalšími informacemi, jako jsou typy, verze programu nebo kultura (pro vícejazyčné aplikace). Když je program v C\# spuštěn, sestavení se načte do CLR, které provádí Just-In-Time kompilaci pro převod kódu z IL do nativních strojových instrukcí.
 
-Jazyková interoperabilita je klíčovou vlastností .NET. IL kód vytvořený kompilátorem C\# odpovídá {\it Common Type Specification} (CTS). Může tedy interagovat s kódem, který byl vygenerován z .NET verzí jazyků F\#, Visual Basic, C++ a více než 20 dalších jazyků kompatibilních s CTS. Jedno sestavení může obsahovat více modulů napsaných v různých jazycích pod platformou .NET. Typy se mohou navzájem odkazovat, jako by byly napsány ve stejném jazyce.
+Jazyková interoperabilita je klíčovou vlastností .NET. IL kód vytvořený kompilátorem C\# odpovídá {\it Common Type Specification} (CTS). Může tedy interagovat s kódem vygenerovaným z .NET verzí jazyků F\#, Visual Basic, C++ a více než 20 dalších programovacích jazyků kompatibilních s CTS. Díky tomu může jedno sestavení obsahovat více modulů napsaných v různých jazycích pod platformou .NET. Typy se mohou navzájem odkazovat, jako by byly napsány ve stejném jazyce.
 
-Kromě běhových služeb zahrnuje .NET také rozsáhlé knihovny. Tyto knihovny podporují mnoho různých pracovních zátěží. Jsou uspořádány do jmenných prostorů, které poskytují širokou škálu užitečných funkcí. Knihovny zahrnují vše od vstupu a výstupu souborů přes manipulaci s řetězci až po analýzu XML, rozhraní webových aplikací až po ovládací prvky knihoven jako je Windows Forms. Typická aplikace v jazyce C\# široce využívá knihovnu tříd .NET ke zpracování běžných operací (například práce se soubory).
+Kromě běhových služeb zahrnuje .NET také rozsáhlé knihovny. Tyto knihovny podporují mnoho různých pracovních zátěží, které jsou uspořádány do jmenných prostorů poskytující širokou škálu užitečných funkcí. Knihovny zahrnují vše od vstupu a výstupu souborů přes manipulaci s řetězci až po analýzu XML, rozhraní webových aplikací až po ovládací prvky knihoven jako je Windows Forms. Typická aplikace v jazyce C\# široce využívá knihovnu tříd .NET ke zpracování běžných operací (například práce se soubory).
 
 
 \section{ASP.NET Core Web API}
@@ -137,7 +136,7 @@ Aplikace vytvořené pomocí dostupných webových šablon obsahují spouštěc�
 
 {\it Vkládání závislostí} (DI) zpřístupňuje nakonfigurované služby v celé aplikaci. Služby jsou přidány do kontejneru DI pomocí {\it WebApplicationBuilder.Services} jako {\it Singleton} (jediná instance dostupná v rámci celé aplikace), {\it Transient} (pro každou injekci je vytvořena nová instance třídy) a další. Služby se obvykle získávají z DI pomocí konstruktorového vkládání ({\it constuctor injection}), kde jsou služby specifikovány v parametrech konstruktoru.
 
-Zpracování požadavků je složeno jako řada middlewarových komponent. Každá komponenta provádí operace v rámci {\it HttpContext} a buď vyvolá další middleware v kanálu, nebo ukončí požadavek. Typicky používanými middleware jsou například autorizace, vývojářská stránka s informacemi o chybách, a nebo přesměrování na HTTPS. Pomocí plánovacího middleware je v této práci také zajištěno periodické volání služeb frameworku strojového učení a databázového klienta pro ukládání záznamů o měřeních teploty.
+Zpracování požadavků je složeno jako řada middlewarových komponent. Každá komponenta provádí své operace v rámci {\it HttpContext} a buď skončí úspěšně a vyvolá další middleware v kanálu, nebo ukončí požadavek. Typicky používanými middleware jsou například autorizace, vývojářská stránka s informacemi o chybách, anebo přesměrování na HTTPS. Pomocí plánovacího middleware je v této práci zajištěno periodické volání služeb frameworku strojového učení a databázového klienta pro ukládání záznamů o měřeních teploty v místnosti a venkovního počasí.
 
 ASP.NET Core poskytuje implementaci serveru Kestrel, který může běžet jako veřejně přístupný server vystavený přímo internetu. Kestrel je však často provozován v konfiguraci reverzní proxy se servery Nginx nebo Apache.
 
@@ -147,18 +146,18 @@ ML.NET je dle \cite{what_is_mlnet1} open-source multiplatformní framework stroj
 
 Aplikace strojového učení využívají k předpovědi vzorů v datech, místo toho aby je bylo nutné explicitně programovat. Ústředním bodem ML.NET je model strojového učení. Model specifikuje kroky potřebné k transformaci vstupních dat do predikce. ML.NET umožňuje trénovat vlastní model nebo importovat předem trénovaný model TensorFlow či ONNX.
 
-ML.NET dle \cite{what_is_mlnet2} podporuje řadu úloh strojového učení: {\it klasifikace/kategorizace} (např. rozdělení zpětné vazby na pozitivní/negativní), {\it regrese} (předpověď spojité hodnoty, např. ceny domu na základě velikosti a lokality), {\it detekce anomálií} (např. detekce podvodných bankovních transakcí), {\it doporučení} (např. produktu na základě předchozích nákupů zákazníka), {\it časové řady} (sekvenční data, např. předpověď počasí) a {\it klasifikace obrázků} (např. kategorizace druhů rostlin).
+ML.NET dle \cite{what_is_mlnet2} podporuje řadu úloh strojového učení: {\it klasifikace/kategorizace} (například rozdělení zpětné vazby na pozitivní/negativní), {\it regrese} (předpověď spojité hodnoty, například ceny domu na základě velikosti a lokality), {\it detekce anomálií} (například detekce podvodných bankovních transakcí), {\it doporučení} (například produktu na základě předchozích nákupů zákazníka), {\it časové řady} (sekvenční data, například předpověď počasí) a {\it klasifikace obrázků} (například kategorizace druhů rostlin).
 
 V této práci se bude pracovat s po sobě jdoucími měřeními vývoje teploty v místnosti, které se určitým způsobem vyvíjí v čase. Jedná se tedy o časovou řadu. Analýza časových řad podporovaná frameworkem ML.NET pomáhá poskytnout odpověď na otázku budoucího vývoje teploty tím, že se podívá na historická data, identifikuje vzorce a použije tyto informace k předpovědi. Algoritmus rozhodnutí o stavu topení pracující s touto předpovědí bude popsán v kapitole \ref{implementace}.
 
-Dle \cite{mlnet_tutorial} ML.NET pro analýzu dat používá techniku jednorozměrné analýzy časových řad. Jednorozměrná analýza časových řad se dívá na jediné numerické pozorování za určité časové období ve specifických intervalech. Framework k tomuto účelu používá algoritmus {\it analýzy singulárního spektra (SSA)}. SSA funguje tak, že rozkládá časovou řadu na sadu hlavních komponent. Tyto složky lze interpretovat jako části signálu, které odpovídají trendům, šumu, sezónnosti a mnoha dalším faktorům. Poté jsou tyto komponenty rekonstruovány a použity k předpovědi hodnot někdy v budoucnu.
+Dle \cite{mlnet_tutorial} ML.NET pro analýzu dat používá techniku jednorozměrné analýzy časových řad. Jednorozměrná analýza časových řad se dívá na jediné numerické pozorování za určité časové období ve specifických intervalech. Framework k tomuto účelu používá algoritmus {\it analýzy singulárního spektra (SSA)}. SSA funguje tak, že rozkládá časovou řadu na sadu hlavních komponent. Tyto složky lze interpretovat jako části signálu, které odpovídají trendům, šumu, sezónnosti a mnoha dalším faktorům. Následně jsou tyto komponenty rekonstruovány a použity k předpovědi hodnot někdy v budoucnu.
 
 \pagebreak
 
 \section{.NET MAUI}
-Pro vytvoření klientské aplikace se správou a monitorováním připojených topení bude použita knihovna .NET MAUI (Multi-platform App User Interface). Dle \cite{maui} se jedná o multiplatformní knihovnu od společnosti Microsoft, která je nástupcem aktuálního frameworku Xamarin.Forms. Umožňuje vytváření nativních mobilních a desktopových aplikací s použitím jazyků C\# a XAML podporovaný operačními systémy Android, iOS, macOS a Windows. Výhodou je tedy využití jednoho sdíleného zdrojového kódu v jednom projektu pro všechny platformy. Navíc v případě potřeby umožňuje přidání platformě specifického kódu ve specifických podadresářích, nebo pomocí direktiv překladače.
+Pro vytvoření klientské aplikace se správou a monitorováním připojených topení bude použita knihovna .NET MAUI (Multi-platform App User Interface). Dle \cite{maui} se jedná o multiplatformní knihovnu od společnosti Microsoft, která je nástupcem aktuálního frameworku Xamarin.Forms. Umožňuje vytváření nativních mobilních a desktopových aplikací s použitím jazyků C\# a XAML podporovaný operačními systémy Android, iOS, macOS a Windows. Hlavní výhodou je tedy využití jednoho sdíleného zdrojového kódu v jednom projektu pro všechny platformy. Navíc v případě potřeby umožňuje přidání platformě specifického kódu ve specifických podadresářích, nebo pomocí direktiv překladače.
 
-.NET 6 poskytuje řadu platformě specifických frameworků pro vytváření aplikací: .NET pro Android, .NET pro iOS, .NET pro macOS a knihovnu Windows UI 3 (WinUI 3). Všechny tyto frameworky mají přístup ke stejné knihovně základních tříd .NET 6 (BCL). Tato knihovna abstrahuje podrobnosti o základní platformě. Verze pro Android, iOS a macOS využívají implementaci .NET runtime Mono, zatímco verze pro Windows používá Win32.
+.NET 6 poskytuje řadu platformě specifických frameworků pro vytváření aplikací: .NET pro Android, .NET pro iOS, .NET pro macOS a knihovnu Windows UI 3 (WinUI 3). Všechny tyto frameworky mají přístup ke stejné knihovně základních tříd .NET 6 (BCL). Tato knihovna abstrahuje podrobnosti o základní platformě. Verze .NET runtime pro Android, iOS a macOS využívají implementaci {\it Mono}, zatímco verze pro Windows používá {\it Win32}.
 
 Obrázek \ref{mauiArchitectureDiagra} zobrazuje architekturu aplikace používající .NET MAUI. Klientský aplikační kód typicky interaguje s .NET MAUI API (1), které poté přímo volá funkce API nativní platformy (3). Pokud je vyžadováno, funkce nativní platformy může klientský kód volat i přímo (2) \cite{maui}.
 
@@ -170,7 +169,7 @@ Obrázek \ref{mauiArchitectureDiagra} zobrazuje architekturu aplikace používaj
 \end{figure}
 
 \subsection{XAML}
-Dle \cite{xaml} je XAML ({\it eXtensible Application Markup Language}) jazyk založený na XML, který je alternativou k programování kódem, kdy jsou vytvářeny instance objektů organizované v hierarchiích. Umožňuje definovat uživatelská rozhraní aplikací pomocí značek. XAML není vyžadován v aplikaci .NET MAUI, ale je to doporučený přístup k vývoji uživatelského rozhraní, protože je často stručnější, vizuálně koherentnější a má podporu nástrojů v IDE. XAML se také dobře hodí pro použití se vzorem {\it Model-View-ViewModel (MVVM)}, kde XAML definuje pohled, který je propojen s kódem viewmodelu v C\# prostřednictvím datových vazeb.
+Dle \cite{xaml} je XAML ({\it eXtensible Application Markup Language}) jazyk založený na XML. Je to alternativa k programování kódem, kdy jsou vytvářeny instance objektů organizované v hierarchiích. Umožňuje definovat uživatelská rozhraní aplikací pomocí značek. XAML není vyžadován v aplikaci .NET MAUI, ale je to doporučený přístup k vývoji uživatelského rozhraní, protože je často stručnější, vizuálně koherentnější a má podporu nástrojů v IDE. XAML se také dobře hodí pro použití se vzorem {\it Model-View-ViewModel (MVVM)}, kde XAML definuje pohled, který je propojen s kódem viewmodelu v C\# prostřednictvím datových vazeb.
 
 \subsection{Model-View-ViewModel}
 Návrhový vzor Model-View-ViewModel (MVVM) dle \cite{mvvm} vynucuje oddělení mezi třemi softwarovými vrstvami – uživatelským rozhraním, nazývaným pohled (view), podkladovými daty, nazývanými model, a prostředníkem mezi pohledem a modelem, nazývaným viewmodel. Pohled a viewmodel jsou často propojeny prostřednictvím datových vazeb definovaných v XAML, kde je vlastnost {\it BindingContext} obvykle instancí daného viewmodelu.
@@ -183,7 +182,7 @@ Pro ukládání dat o připojených topeních byla zvolen databázový software 
 
 Pro zápis a dotazování nad daty nebo jakékoliv používání rozhraní API, je nejprve nutné vytvořit uživatelské přihlašovací údaje, organizaci a segment. Vše v InfluxDB je organizováno pod konceptem organizace. API je navrženo jako multi-tenant (sdílené skupinou uživatelů). Segmenty představují místo, kde jsou ukládány data časové řady.
 
-Dotazy na tuto databázi využívají jazyka {\it Flux}. Dle \cite{flux} je to open-source funkcionální datový skriptovací jazyk určený pro dotazování, analýzu a práci s daty. Flux podporuje více typů zdrojů dat, včetně databází časových řad (jako je InfluxDB), relační SQL databáze (jako MySQL a PostgreSQL) a CSV. Flux sjednocuje kód pro dotazování, zpracování a zápis dat do jediné syntaxe.
+Dotazy na tuto databázi využívají jazyka {\it Flux}. Dle \cite{flux} je to open-source funkcionální datový skriptovací jazyk určený pro dotazování, analýzu a práci s daty. Flux podporuje více typů zdrojů dat, včetně databází časových řad (jako je InfluxDB), relační SQL databáze (jako MySQL a PostgreSQL) a CSV. Jazyk Flux sjednocuje kód pro dotazování, zpracování a zápis dat do jediné syntaxe.
 
 \begin{figure}[hbt]
 \centering
@@ -192,9 +191,9 @@ Dotazy na tuto databázi využívají jazyka {\it Flux}. Dle \cite{flux} je to o
 \end{figure}
 
 \section{Nginx}
-Dle \cite{nginx_wiki} Nginx je softwarový webový server s managementem zátěže a reverzní proxy s otevřeným zdrojovým kódem. Pracuje s protokoly HTTP (i HTTPS), SMTP, POP3, IMAP a SSL. Zaměřuje se především na vysoký výkon a nízké nároky na paměť.
+Dle \cite{nginx_wiki} Nginx je open-source softwarový webový server s managementem zátěže a reverzní proxy. Pracuje s protokoly HTTP (i HTTPS), SMTP, POP3, IMAP a SSL. Zaměřením tohoto serveru je především vysoký výkon a nízké nároky na paměť.
 
-V projektu je Nginx použit dle \cite{nginx_asp} jako reverzní proxy server, který naslouchá na standardním portu 80 pro HTTP a přeposílá dotazy na ASP.NET Core server běžící na rozhraní localhost na portu 5232.
+V projektu je server Nginx použit dle \cite{nginx_asp} jako reverzní proxy server, který naslouchá na standardním HTTP portu 80 a přeposílá dotazy aplikaci ASP.NET Core běžící na rozhraní localhost na portu 5232.
 
 \chapter{Implementace a testování}
 \label{implementace}
@@ -202,7 +201,7 @@ V projektu je Nginx použit dle \cite{nginx_asp} jako reverzní proxy server, kt
 Tato kapitola se zabývá detaily implementace systému {\it SmartHeater} vytvořeného v rámci této práce, který je nasazen jako řídící software na dříve zmíněném minipočítači Raspberry Pi. Uživateli také umožní správu a monitorování sítě chytrých topení v jednoduché vlastní mobilní aplikaci. Závěr této kapitoly se zabývá testováním výsledků získaných během sběru dat implementovaným systémem.
 
 \section{Architektura řešení}
-Kód řešení ({\it SmartHeater}) je rozdělen na klientskou, serverovou a sdílenou část. Projekty se zdrojovým kódem řešení systému jsou rozděleny na 4 části:
+Kód řešení ({\it SmartHeater}) je rozdělen na klientskou, serverovou a sdílenou část. Tento systém je rozdělen do čtyř projektů:
 \begin{itemize}
     \item \textbf{SmartHeater.Hub}: řídící hub zajišťující serverovou část pod ASP.NET Core Web API a periodické řízení a monitorování registrovaných ovladačů topení.
     \item \textbf{SmartHeater.ML}: knihovna tříd nad frameworkem ML.NET pro strojové učení.
@@ -219,14 +218,14 @@ Kód řešení ({\it SmartHeater}) je rozdělen na klientskou, serverovou a sdí
 \pagebreak
 
 \section{Řídící hub}
-Centrálním bodem této práce je software běžící na Raspberry Pi, které zde má roli hlavního řídícího hubu. Cílem této části je správa, ovládání a monitorování připojených topení a poskytnutí rozhraní webového API pro komunikaci s klientskou aplikací. Jádrem je projekt {\it SmartHeater.Hub}. V souboru {\it Program.cs} má nakonfigurováno zajištění vytrénování modelu ML, registraci služeb dále poskytnuté DI kontejnerem, plánovač poskytnutý knihovnou {\it Coravel} \cite{coravel}, který periodicky spuští kód tříd ze složky {\it Invocables}, ladící prostředí {\it Swagger} a HTTP koncové body poskytovaného webového API.
+Centrálním bodem této práce je software běžící na Raspberry Pi, které zde má roli hlavního řídícího hubu. Cílem této části je správa, ovládání a monitorování připojených topných jednotek a poskytnutí rozhraní webového API pro komunikaci s klientskou aplikací. Jádrem je projekt {\it SmartHeater.Hub}. V souboru {\it Program.cs} má nakonfigurováno zajištění vytrénování modelu ML, registraci služeb dále poskytnuté DI kontejnerem, plánovač poskytnutý knihovnou {\it Coravel} \cite{coravel}, který periodicky spuští kód tříd ze složky {\it Invocables}, ladící prostředí {\it Swagger} a HTTP koncové body poskytovaného webového API.
 
 \begin{figure}[hbt]
 \includegraphics[width=\textwidth]{obrazky-figures/swagger.png}
 \caption{Prostředí Swagger pro ladění koncových bodů webového API}
 \end{figure}
 
-Rozhraní pro registrované služby a pro každé z nich jedna z možných implementací se v projektu nacházejí ve jmenném prostoru {\it SmartHeater.Hub.Services}. Způsob práce s využitím rozhraní byl zvolen z důvodu možnosti budoucí rozšiřitelnosti a nahrazení aktuální implementace bez nutnosti přepisování kódu, který rozhraní využívá.
+Předpisy rozhraní služeb a jedna z jejich možných implementací se v projektu nacházejí ve jmenném prostoru {\it SmartHeater.Hub.Services}. Využití rozhraní bylo zvoleno z důvodu možnosti budoucí rozšiřitelnosti a nahrazení aktuální implementace bez nutnosti přepisování kódu, ve kterém jsou tato rozhraní dále využívána.
 
 \begin{figure}[hbt]
 \includegraphics[width=0.69\textwidth]{obrazky-figures/code-hubservices.png}
@@ -236,7 +235,7 @@ Rozhraní pro registrované služby a pro každé z nich jedna z možných imple
 \subsection{Data o počasí}
 Pro sledování vlivu počasí na teplotu uvnitř v místnosti bylo do projektu přidáno rozhraní {\it IWeatherService}, které zprostředkovává metody pro čtení teploty ve °C i °F (v této práci se primárně pracuje se °C). Pro pohodlí uživatele bylo také přidáno rozhraní {\it ICoordinatesService}, které umožňuje automatické zjištění polohu zařízení, která bude použita k získání dat o počasí z daného místa.
 
-Implementace ve třídě {\it IpApiService} k tomuto využívá webovou službu \url{https://ipapi.co/}, která vrací souřadnice dle veřejné IP adresy zařízení. Tyto souřadnice jsou uloženy v poli, aby se zamezilo zbytečnému síťovému provozu. Pracuje se zde tedy s předpokladem, že zařízení, na kterém software poběží, typu Raspberry Pi bude instalováno na jednom místě a nebude měnit svou polohu.
+Implementace ve třídě {\it IpApiService} k tomuto využívá webovou službu \url{https://ipapi.co/}, která vrací souřadnice dle veřejné IP adresy zařízení. Tyto souřadnice jsou uloženy v poli, aby se zamezilo zbytečnému síťovému provozu. Pracuje se zde s předpokladem, že zařízení, na kterém software poběží, typu Raspberry Pi bude instalováno na jednom místě a nebude měnit svou polohu.
 
 Samotné rozhraní pro získávání dat o počasí implementuje třída {\it OpenWeatherService}. Jako zdroj používá volně dostupné webové API \textbf{OpenWeather}, které pro svůj provoz vyžaduje pouze registraci a vytvoření API klíče. Získaný klíč je následně uložen do souboru {\it appsettings.json}. Tento soubor obsahuje konfiguraci pro ASP.NET projekt, ze které lze snadno číst pomocí vestavěného rozhraní {\it IConfiguration}.
 
@@ -248,7 +247,7 @@ Samotné rozhraní pro získávání dat o počasí implementuje třída {\it Op
 \pagebreak
 
 \subsection{Databázové rozhraní}
-Rozhraní {\it IDatabaseService} zprostředkovává připojení k databázi. Obsahuje metody pro zápis měření (jako parametry vyžaduje záznam stavu topení a počasí) a čtení historie (vrací kolekci databázových záznamů pro konkrétní model topení ve vybraném období a z vybraného sloupce tabulky v databázi).
+Rozhraní {\it IDatabaseService} zprostředkovává připojení k databázi. Obsahuje metody umožňující zápis měření (jako parametry vyžaduje záznam stavu topení a počasí) a čtení historie (vrací kolekci databázových záznamů pro konkrétní model topení ve vybraném období a z vybraného sloupce tabulky v databázi).
 
 Implementace ve třídě {\it InfluxDbService} využívá knihovnu {\it InfluxDB.Client} poskytující třídy pro práci s databázovým systémem InfluxDB. Podobně jako v předchozí podkapitole používá {\it InfluxDbService} konfiguraci uloženou v souboru {\it appsettings.json}, kde má uložený název organizace a segmentu, které je třeba nastavit v databázi InfluxDB po její instalaci, a databázovým systémem vygenerovaný přístupový token.
 
@@ -267,14 +266,14 @@ Jmenný prostor {\it SmartHeater.Shared.Static} obsahuje pomocné statické tř�
 
 \begin{figure}[hbt]
 \includegraphics[width=0.75\textwidth]{obrazky-figures/code-aggregationwindow.png}
-\caption{Třída {\it HistoryPeriods} navíc pro část Flux dotazu obsahuje metodu {\it AggregationWindow}, která pro dané časové období (dle odpovídající definované konstanty) vrací příslušnou velikost agregačního okna. Tyto velikosti byly odvozeny od velikostí okna, které používá webové rozhraní InfluxDB pro dané časové úseky. Delší vyžádané časové období představuje více naměřených hodnot a s tím spojené vyšší nároky na paměť a síťový provoz.}
+\caption{Třída {\it HistoryPeriods} navíc pro část Flux dotazu obsahuje metodu {\it AggregationWindow}, která pro dané časové období (dle odpovídající definované konstanty) vrací příslušnou velikost agregačního okna. Tyto velikosti byly odvozeny od velikostí agregačního okna používané webovým rozhraním InfluxDB pro dané časové úseky. Delší vyžádané časové období představuje větší množství naměřených hodnot a s tím spojené vyšší nároky na paměť a síťový provoz.}
 \end{figure}
 
 
 \subsection{Správa a ovládání topení}
 Rozhraní {\it IHeatersRepository} poskytuje metody pro správu sítě topení. Umožňuje získání informací o registrované jednotce ({\it GetHeaterAsync}) i možnost získání detailu s měřením teploty v místnosti a spotřeby energie ({\it GetHeaterDetailAsync}), čtení i zápis kolekce registrovaných jednotek ({\it ReadHeatersAsync} a {\it WriteHeatersAsync}), vkládání ({\it InsertAsync}), aktualizace ({\it UpdateAsync}) a mazání jednotlivých topení ({\it DeleteAsync}), a získání služby implementující rozhraní {\it IHeaterControlService} pro ovládání daného topení (pro všechny registrované jednotky {\it GetHeaterServicesAsync}, nebo pro jedno konkrétní registrované topení {\it GetHeaterService} a {\it GetHeaterServiceAsync}).
  
-Implementace ve třídě {\it HeatersRepository} pracuje s kolekcí topení uloženou v souboru {\it heaters.json} (a pokud neexistuje, vytvoří si jej). Běžně by bylo vhodné je ukládat jako databázové entity, ale použitá databáze InfluxDB pracuje pouze s časovými řadami, pro které je optimalizovaná, a instalovat vedle ní navíc relační databázový server by bylo v případě tohoto projektu zbytečné.
+Implementace ve třídě {\it HeatersRepository} pracuje s kolekcí topení uloženou v souboru {\it heaters.json} (a pokud neexistuje, vytvoří si jej). Běžně by bylo vhodné tyto záznamy ukládat jako databázové entity. Použitá databáze InfluxDB však pracuje pouze s časovými řadami, pro které je optimalizovaná. V případě tohoto projektu by ale instalace jiného relačního databázového serveru, který by běžel vedle InfluxDB, byla zbytečná.
 
 Jmenný prostor {\it SmartHeater.Shared.Models} obsahuje třídy použitých datových modelů. Jedním z nich je {\it HeaterListModel} představující model registrovaného topení. Topení jsou rozlišována dle \textbf{IP adresy}. Dále model obsahuje informace o názvu topení, typu topné jednotky (výčtový typ {\it HeaterTypes} aktuálně obsahuje pouze {\it Shelly1PM}, ale do budoucna je možné řešení rozšířit i o další typy), a nastavené referenční teplotě, kterou se bude ovládající část snažit v místnosti udržet.
 
@@ -284,7 +283,7 @@ Jmenný prostor {\it SmartHeater.Shared.Models} obsahuje třídy použitých dat
 \centering
 \includegraphics[height=2.94cm]{obrazky-figures/code-heaterslistmodel.png}
 \includegraphics[height=2.94cm]{obrazky-figures/code-heatersjson.png}
-\caption{{\it HeaterListModel} a reprezentace jejich kolekce ve formátu JSON uložené v souboru {\it heaters.json}}
+\caption{{\it HeaterListModel} a soubor {\it heaters.json} obsahující reprezentaci jejich kolekce ve formátu JSON}
 \end{figure}
 
 Dalším datovým modelem je {\it HeaterStatusModel}, který představuje záznam o stavu topení. Obsahuje informace, zda je topení ve stavu zapnuto nebo vypnuto, naměřenou teplotu v místnosti, záznam o okamžité spotřebě elektrické energie ve Wattech a časové razítko měření. Model použitý pro získání detailu o topení {\it HeaterDetailModel} obsahuje informace uložené v rámci {\it HeaterListModel} i záznam o měření v položce typu {\it HeaterStatusModel}.
@@ -310,8 +309,8 @@ Oddělené rozhraní ovladače topení {\it IHeaterControlService} obsahuje meto
 
 \noindent Třída {\it ShellyRelayStatus} mapuje dle \cite{shelly-api-status} následující položky JSON odpovědi:
 \begin{itemize}
-    \item {\it ''relays''}: Jedná se o seznam relé a obsahuje položky s jejich stavem (Shelly 1PM obsahuje pouze jedno relé, takže čteme z první položky). Položkou je zde slovník, ze kterého lze z položky {\it ''ison''} vyčíst, zda je relé ve stavu zapnuto nebo vypnuto.
-    \item {\it ''ext\_temperature''}: Jedná se o seznam přípojených externích teplotních senzorů (v této práci je pro každé topení brán v potaz pouze jeden senzor, takže opět čteme z první položky). Položkou je zde slovník z jehož položky {\it ''tC''} vyčteme teplotu ve °C.
+    \item {\it ''relays''}: Jedná se o seznam relé obsahující položky s jejich stavem (Shelly 1PM obsahuje pouze jedno relé, takže čteme z první položky). Položkou je zde slovník z jehož položky {\it ''ison''} lze vyčíst, zda je relé ve stavu zapnuto nebo vypnuto.
+    \item {\it ''ext\_temperature''}: Seznam přípojených externích teplotních senzorů (v této práci je pro každé topení brán v potaz pouze jeden senzor, takže opět čteme z první položky). Položkou je zde slovník z jehož položky {\it ''tC''} vyčteme teplotu ve °C.
     \item {\it ''meters''}: Obsahuje informace o naměřené okamžité spotřebě elektrické energie ve Wattech, jejíž hodnota je vyčtena z položky {\it ''power''}.
 \end{itemize}
 
@@ -329,7 +328,7 @@ Klientská aplikace může komunikovat s řídícím hubem pomocí HTTP metod dl
 \begin{itemize}
     \item {\it ''/heaters''}: Požadavkem metodou {\it GET} vrací kolekci registrovaných topení typu {\it HeaterListModel}. Metoda {\it POST} naopak {\it HeaterListModel} očekává v těle zprávy s vyplněnými informacemi o novém topení, které přidá do kolekce a uloží do souboru {\it heaters.json}.
     \item {\it ''/heaters/\{ipAddress\}''}: Metoda {\it GET} pro tento koncový bod vrací detailní informace o topení v modelu {\it HeaterDetailModel}. Požadavek metodou {\it PUT} upraví specifikovaný záznam o topení přijatým {\it HeaterListModel} v těle zprávy. Dále metodou {\it DELETE} smaže specifikované topení z kolekce uložené v souboru {\it heaters.json}.
-    \item {\it ''/weather''}: Požadavkem metodou {\it GET} vrací záznam o aktuální venkovní teplotě ve °C získaném ze služby {\it OpenWeather}.
+    \item {\it ''/weather''}: Požadavkem metodou {\it GET} vrací záznam o aktuální venkovní teplotě získaný ze služby {\it OpenWeather}.
     \item {\it ''/heaters/\{ipAddress\}/history/\{period\}/\{field\}''}: Metoda {\it GET}, která vrací historii uloženou v databázi InfluxDB, která je filtrována v dotaze v jazyce Flux dle topení specifikovaného IP adresou, požadovaným časovým úsekem a typem položky databáze.
     \item {\it ''/periods''}: Vrací kolekci podporovaných časových úseků pro filtrování Flux dotazem specifikované ve statické třídě {\it HistoryPeriods}.
     \item {\it ''/fields''}: Vrací kolekci v implementaci použitých položek uložených v databázi InfluxDB (sloupce tabulky). 
@@ -342,7 +341,7 @@ Multiplatformní aplikace implementovaná nad frameworkem .NET MAUI byla vytvoř
 
 Ústředním bodem zdrojového kódu aplikace je její konfigurace v souboru {\it MauiProgram.cs}. Zde je podobně jako v konfiguraci řídícího hubu poskytován kontejner DI, který poskytuje stránky, viewmodely a další služby (například {\it HttpClient} pro komunikaci s webovým API). Další konfigurace zdrojů pro XAML se nachází v souborech {\it App.xaml} a {\it App.xaml.cs}.
 
-Jako základní prvek propojující uživatelské rozhraní této aplikace je použit {\it Shell}, který dle \cite{maui-shell} snižuje složitost vývoje aplikací tím, že poskytuje základní funkce vyžadované většinou aplikací, včetně jediného místa pro popis vizuální hierarchie aplikace, navigační schéma založené na URI, které umožňuje navigaci na jakoukoli stránku v aplikaci a integrovaný obslužný program vyhledávání.
+Jako základní prvek propojující uživatelské rozhraní této aplikace je použit vestavěný .NET MAUI typ {\it Shell}, který dle \cite{maui-shell} snižuje složitost vývoje aplikací tím, že poskytuje základní funkce vyžadované většinou aplikací, včetně jediného místa pro popis vizuální hierarchie aplikace, navigační schéma založené na URI, které umožňuje navigaci na jakoukoli stránku v aplikaci a integrovaný obslužný program vyhledávání.
 
 \begin{figure}[hbt]
 \label{appshellprovider}
@@ -350,7 +349,7 @@ Jako základní prvek propojující uživatelské rozhraní této aplikace je po
 \caption{Statická třída {\it AppShellProvider} ze jmenného prostoru {\it SmartHeater.Maui.Providers} zprostředkovává hlavní rozhraní aplikace vestavěného typu {\it Shell}. Využívá možností direktiv pro překladač, kdy pomocí definovaných proměnných běhového prostředí lze zjistit, zda je překládáno pro mobilní či desktopovou platformu. Dle toho vrací {\it MobileShell} nebo {\it DesktopShell}, které jsou definovány ve složce {\it Pages}, a také upravuje směrování na příslušnou stránku detailu topení, jejíž rozhraní je také upraveno dle platformy.}
 \end{figure}
 
-Zdrojový kód aplikace obsahuje také platformě specifický kód ve složce {\it Platforms}. V rámci této práce byla testována pouze verze pro Windows, kde nebylo oproti vytvořené šabloně potřeba nic měnit, a platformu Android, pro kterou byl upraven pouze soubor {\it AndroidManifest.xml} přidáním vyžadovaných systémových oprávnění pro přístup k síťovému rozhraní zařízení.
+Zdrojový kód aplikace obsahuje také platformě specifický kód ve složce {\it Platforms}. Během vývoje byla testována pouze verze pro \textbf{Windows}, kde nebylo oproti vytvořené šabloně potřeba nic měnit, a platformu \textbf{Android}, pro kterou byl upraven pouze soubor {\it AndroidManifest.xml} přidáním vyžadovaných systémových oprávnění pro přístup k síťovému rozhraní zařízení.
 
 Verze pro platformy {\it iOS}, {\it Mac Catalyst} a {\it Tizen} nebyly v rámci této práce otestovány, kvůli nemožnosti přístupu k potřebnému hardware (smartphony {\it Apple iPhone} a počítače {\it Mac}). Díky vlastnostem použitého frameworku .NET MAUI a sdíleného zdrojového kódu lze ale předpokládat jejich plnou funkčnost.
 
@@ -383,7 +382,7 @@ Stránka pro přidání topení {\it AddHeaterPage} obsahuje textová pole pro p
 
 Další částí pro samotné monitorování stavu topení je stránka detailu, která se zobrazí po kliknutí na položku v seznamu registrovaných topení na úvodní stránce {\it HeatersPage}. K této stránce patří viewmodel {\it HeaterDetailViewModel}, který implementuje podporu URI navigace s parametrem IP adresy topení. Ta je použita jako parametr metody {\it GetHeaterDataAsync}, která pomocí HTTP metody {\it GET} stáhne data o daném topení a deserializuje je do objektu typu {\it HeaterDetailModel}.
 
-Nahoře na stránce se nachází tlačítka s akcemi nad topením pro znovunačtení aktuálních informací o topení, navigaci na editační stránku topení a jeho smazání. Znovunačtení je provedeno voláním metody {\it ReLoad}, která opět volá {\it GetHeaterDataAsync} s parametrem IP adresy aktuálně zobrazeného topení. Editační tlačítko naviguje pomocí {\it Shell} na stránku {\it AddHeaterPage}, které předá parametry k editaci. Tlačítko smazání zobrazí dialog o potvrzení smazání, a pokud je zvolena možnost {\it ''Ano''} posílá HTTP požadavek metodou {\it DELETE}. Zvolením {\it ''Ne''} je dialog uzavřen a požadavek na smazání serveru není odeslán.
+Nahoře na stránce se nachází tlačítka s akcemi nad topením pro znovunačtení aktuálních informací o topení, navigaci na editační stránku topení a jeho smazání. Znovunačtení je provedeno voláním metody {\it ReLoad}, která opět volá {\it GetHeaterDataAsync} s parametrem IP adresy aktuálně zobrazeného topení. Kliknutí na editační tlačítko naviguje na stránku {\it AddHeaterPage}, které jsou předány parametry topení k editaci. Tlačítko smazání zobrazí dialog o potvrzení smazání, a pokud je zvolena možnost {\it ''Ano''} posílá HTTP požadavek metodou {\it DELETE}. Zvolením {\it ''Ne''} je dialog uzavřen a požadavek na smazání serveru není odeslán.
 
 \begin{figure}[hbt]
 \includegraphics[width=0.72\textwidth]{obrazky-figures/code-gotoedit.png}
@@ -392,11 +391,11 @@ Nahoře na stránce se nachází tlačítka s akcemi nad topením pro znovunačt
 
 Tato stránka má dvě varianty na základě platformy (mobilní pro Android a iOS, a desktopovou pro ostatní), jak již bylo zmíněno u obrázku \ref{appshellprovider}. Kvůli tomuto rozdělení je kód pro zobrazení informací o topení extrahován do pohledu {\it HeaterDetailView} a {\it HeaterChartsView}. Tímto se stávají znovupoužitelnými a zamezuje se kopírování kódu.
 
-{\it HeaterDetailView} zobrazuje informace z objektu typu {\it HeaterDetailModel}, který mu je předán jako {\it BindingContext}.
+{\it HeaterDetailView} zobrazuje informace z objektu typu {\it HeaterDetailModel}, který mu je předán pomocí XAML datové vazby.
 
-{\it HeaterChartsView} obsahuje grafy, které umožní uživateli zobrazit si a mít přehled o historii teploty v místnosti, kde je topení umístěno, a spotřebě elektrické energie. V aplikaci jsou pro tento účel využity grafy z knihovny {\it Syncfusion.Maui.Charts} dle \cite{maui-charts}. Tento pohled obsahuje viewmodel typu {\it HeaterChartsViewModel}, ve kterém jsou uloženy kolekce s daty pro zobrazení v grafech.
+{\it HeaterChartsView} obsahuje grafy z knihovny {\it Syncfusion.Maui.Charts} dle \cite{maui-charts}. Ty umožní uživateli zobrazit si a mít přehled o historii spotřeby elektrické energie a teploty v místnosti, kde je topení umístěno. Tento pohled obsahuje viewmodel typu {\it HeaterChartsViewModel}, ve kterém jsou uloženy kolekce s daty pro zobrazení v grafech.
 
-Pro výběr časového období a následného stažení dat byl navíc přidán pohled {\it PeriodSelectorView}. Ten pracuje s vlastním viewmodelem typu {\it PeriodSelectorViewModel}, který v parametru konstruktoru přijímá delegát akce. Tlačítko pro načtení dat historie volá tento delegát po svém stisknutí. Předaná metoda v případě {\it HeaterChartsViewModel} použije HTTP metodu {\it GET} pro stažení dat ze zvoleného časového období o položkách databáze teploty a spotřeby. Získaná data jsou následně uložena do kolekcí, které mají datové vazby na grafy z knihovny {\it Syncfusion.Maui.Charts}.
+Pro výběr časového období a následného stažení dat byl navíc přidán pohled {\it PeriodSelectorView}, který pracuje s vlastním viewmodelem typu {\it PeriodSelectorViewModel}. Ten v parametru konstruktoru přijímá delegát akce, která se vykoná stiskem tlačítka. Předaný delegát metody v případě {\it HeaterChartsViewModel} odešle HTTP požadavek metodou {\it GET} pro stažení dat ze zvoleného časového období o položkách databáze teploty a spotřeby. Získaná data jsou následně uložena do kolekcí, které mají datové vazby na grafy.
 
 \begin{figure}[hbt]
 \centering
@@ -439,7 +438,7 @@ IP adresu řídícího hubu lze zadat do textového pole manuálně, nebo pomoc�
 \caption{Po výběru adresy sítě a délky masky je po kliknutí na tlačítko {\it ''Scan subnet''} spuštěn proces vyhledávání v síti. Tento proces je naznačen indikátorem aktivity a v textu nahoře je zobrazen stav připojování. Pro delší masku sítě může sken trvat déle, a z tohoto důvodu bylo přidáno také tlačítko na zrušení akce.}
 \end{figure}
 
-Zjištění dostupnosti řídícího hubu je z {\it SettingsPage} odděleno do {\it HubScannerView}, ke kterému patří viewmodel typu {\it HubScannerViewModel}. Dostupnost na dané IP adrese je zjištěna HTTP požadavkem metodou {\it GET} na koncový bod webového API {\it ''smartheater-availability-test''}. Metoda {\it AutoDiscover} používá .NET knihovní metodu {\it Parallel.ForEachAsync}, která využívá možnosti paralelního spuštění asynchronních úloh pro posílání HTTP požadavků. Pokud z dané IP adresy přijde očekávaná odpověď, řídící hub byl v síti nalezen a hledání je ukončeno. Běžícím paralelním úlohám je odesláno oznámení o zrušení pomocí {\it CancellationToken}. V případě manuálního zadání IP adresy je dostupnost řídícího hubu zjištěna obdobným způsobem, jen je tento HTTP požadavek odeslán pouze na tuto jednu zadanou IP adresu. Pro samotné procházení podsítě byla přidána pomocná třída {\it SubnetHelper}.
+Zjištění dostupnosti řídícího hubu je z {\it SettingsPage} odděleno do {\it HubScannerView}. Dostupnost na dané IP adrese je zjištěna HTTP požadavkem metodou {\it GET} na koncový bod webového API {\it ''/smartheater-availability-test''}. Metoda {\it AutoDiscover} používá .NET knihovní metodu {\it Parallel.ForEachAsync}, která využívá možnosti paralelního spuštění asynchronních úloh pro posílání HTTP požadavků. Pokud od zařízení pod aktuálně zkoumanou IP adresou přijde očekávaná odpověď, řídící hub byl v síti nalezen, hledání je ukončeno a běžícím paralelním úlohám je odesláno upozornění o zrušení, které je propagováno pomocí {\it CancellationToken}. V případě manuálního zadání IP adresy je dostupnost řídícího hubu zjištěna obdobným způsobem, jen je tento HTTP požadavek odeslán pouze na tuto jednu zadanou IP adresu. Pro samotné procházení podsítě byla přidána pomocná třída {\it SubnetHelper}.
 
 \subsection{Pomocné třídy}
 Implementace mobilní aplikace, krom pomocných tříd modelů a výčtového typu sdílených s řídícím hubem, obsahuje také vlastní pomocné třídy používané jejími stránkami.
@@ -449,8 +448,8 @@ Implementace mobilní aplikace, krom pomocných tříd modelů a výčtového ty
 {\it IconFontHelper} je pomocná třída vygenerovaná webovou službou {\it IconFont2Code} (dostupné na \url{https://andreinitescu.github.io/IconFont2Code}). Cílem této třídy je poskytnout sadu konstant typu string, které zpřehlední kód v místě použití ikony. Tyto konstanty odpovídají speciálním kódům ikon z fontu {\it materialdesignicons-webfont.ttf} (soubor je k nalezení mezi zdroji aplikace ve složce {\it Resources/Fonts}).
 
 \begin{figure}[hbt]
-\includegraphics[width=0.81\textwidth]{obrazky-figures/code-mauiprogram.png}
-\caption{Konfigurace v souboru {\it MauiProgram.cs}, kde je font ikon registrován pod klíčem {\it ''MaterialDesignIcons''}.}
+\includegraphics[width=0.83\textwidth]{obrazky-figures/code-mauiprogram.png}
+\caption{Konfigurace aplikace je obsažena souboru {\it MauiProgram.cs}. Font ikon je zde registrován pod klíčem {\it ''MaterialDesignIcons''}.}
 \end{figure}
 
 \begin{figure}[hbt]
@@ -475,9 +474,9 @@ Součástí implementovaného řešení je knihovna tříd {\it SmartHeater.ML},
 \subsection{Trénovací data}
 Pro používání modelu strojového učení, jehož předpovědi stojí na algoritmu SSA, potřebuje základní trénovací data představující přibližný průběh funkce běžného domácího vytápění přímotopným konvektorem. Model strojového učení se tuto funkci následně snaží napodobit a na jejím základě sestaví předpověď budoucího vývoje.
 
-Na této myšlence byla postavena třída {\it MLDataGenerator}, jejíž metoda {\it RunAsync} zajistí vygenerování trénovacích dat do souboru {\it training.csv} a testovací data, která na ně navazují, do souboru {\it testing.csv}. Výsledkem je časová posloupnost, která představuje rozdíl od nastavené referenční teploty. Generované hodnoty se tedy pohybují s určitým rozptylem okolo hodnoty 0. Tento postup byl zvolen z důvodu generování nejvíce univerzálních dat pro praktické použití (uživatel aplikace si může nastavit libovolnou teplotu v místnosti, která bude udržována).
+Na této myšlence byla postavena třída {\it MLDataGenerator}, jejíž metoda {\it RunAsync} zajistí vygenerování trénovacích dat do souboru {\it training.csv} a testovací data, která na ně navazují, do souboru {\it testing.csv}. Výsledkem je časová posloupnost, která představuje rozdíl od nastavené referenční teploty. Generované hodnoty se tedy pohybují s určitým rozptylem okolo hodnoty 0. Tento postup byl zvolen z důvodu generování co nejvíce univerzálních dat pro praktické použití (uživatel aplikace si může nastavit libovolnou referenční teplotu v místnosti, kterou se model bude snažit v místnosti udržovat).
 
-Generátor rovněž pracuje se stavem simulovaného topení a používá jej pro vypočtení dalšího stavu teploty v místnosti (stoupá při stavu zapnuto a klesá při stavu vypnuto) s určitým rozptylem použitím pseudonáhodnosti. Tyto hodnoty jsou počítány s krokem jedné minuty (po dobu roků 2018 a 2019 pro generování trénovacích dat a 2020 pro testovací data). Řídící hub stejně používá krok jedné minuty při plánování ovládání reálných topení.
+Generátor rovněž pracuje se stavem simulovaného topení a používá jej pro vypočtení dalšího stavu teploty v místnosti (stoupá při stavu zapnuto a klesá při stavu vypnuto). Také je zde použita pseudonáhodnost pro generování nedokonalé křivky s určitým rozptylem. Tyto hodnoty jsou počítány s krokem jedné minuty (po dobu roků 2018 a 2019 pro generování trénovacích dat a 2020 pro testovací data). Řídící hub následně po nasazení v praxi používá stejný krok jedné minuty pro plánování ovládání reálných topení.
 
 \begin{figure}[hbt]
 \centering
@@ -490,9 +489,9 @@ Generátor rovněž pracuje se stavem simulovaného topení a používá jej pro
 
 \begin{figure}[hbt]
 \centering
-\includegraphics[width=0.485\textwidth]{obrazky-figures/mlgen_3.png}
-\includegraphics[width=0.485\textwidth]{obrazky-figures/mlgen_4.png}
-\caption{Generátor dat také pracuje s veřejně dostupnými daty o venkovní teplotě  poskytované Českým hydrometeorologickým úřadem dle \cite{ml-chmu-data} v souladu se zákonem 123/1998 Sb. o právu na informace o životním prostředí. Poskytovaná data jsou z období od roku 1961 po rok 2021. V této práci je pro generování použit soubor dat pod Krajem Vysočina z Moravských Budějovic (nejbližší poskytnutá lokace k testovací instalaci v Jaroměřicích nad Rokytnou). Na grafech je vlivem poskytnuté venkovní teploty vidět kolísání rozdílu teploty nad hodnotou 0 a vypnuté topení v letních měsících.}
+\includegraphics[width=0.489\textwidth]{obrazky-figures/mlgen_3.png}
+\includegraphics[width=0.489\textwidth]{obrazky-figures/mlgen_4.png}
+\caption{Generátor dat také pracuje s veřejně dostupnými daty o venkovní teplotě  poskytované Českým hydrometeorologickým úřadem dle \cite{ml-chmu-data} v souladu se zákonem 123/1998 Sb. o právu na informace o životním prostředí. Poskytovaná data představují průměrné denní teploty z období od roku 1961 po rok 2021. V této práci je pro generování použit soubor dat pod Krajem Vysočina z Moravských Budějovic (nejbližší lokace k testovací instalaci v Jaroměřicích nad Rokytnou). Na grafech je vlivem poskytnuté venkovní teploty vidět kolísání rozdílu teploty nad hodnotou 0 a vypnuté topení v letních měsících.}
 \end{figure}
 
 
@@ -501,16 +500,16 @@ Trénování modelu {\it SmartHeaterModel} probíhá v metodě {\it TrainPipelin
 
 \begin{figure}[hbt]
 \includegraphics[width=0.8\textwidth]{obrazky-figures/ml-pipeline.png}
-\caption{Metoda trénování modelu strojového učení si prvně vytvoří {\it pipeline} pro předpovědi nad časovými řadami používající SSA. Tato část zdrojového kódu byla částečně vygenerována nástrojem {\it Model Builder}, který poskytuje automatické trénování na základě poskytnutých dat. Na konfigurované {\it pipeline} je volána metoda {\it Fit}, která provádí samotné trénování modelu hledáním funkce blížící se bodům předaných trénovacích dat.}
+\caption{Metoda trénování modelu strojového učení si prvně vytvoří {\it pipeline} předpovědi nad časovými řadami používající SSA. Tato část zdrojového kódu byla částečně vygenerována nástrojem {\it Model Builder}, který poskytuje automatické trénování na základě poskytnutých dat. Na konfigurované {\it pipeline} je volána metoda {\it Fit}, která provádí samotné trénování modelu hledáním funkce blížící se bodům předaných trénovacích dat.}
 \end{figure}
 
-Celkově za dva roky po minutových krocích představuje 1 051 200 bodů trénovacích dat. Časová řada je parametrem {\it seriesLength} vzorkována ve 12minutových intervalech, což dává celkem 87 600 vzorků, které jsou jednotlivě analyzovány ve 4minutových oknech. Model je pak nastaven, aby prováděl předpovědi v horizontu 10 minut. 
+Celkově dva roky po minutových krocích představuje 1 051 200 bodů trénovacích dat. Časová řada je parametrem {\it seriesLength} vzorkována ve 12minutových intervalech, což dává celkem 87 600 vzorků, které jsou jednotlivě analyzovány ve 4minutových oknech. Model je pak nastaven, aby prováděl předpovědi v horizontu 10 minut. 
 
 Nakonec dle \cite{mlnet_tutorial} víme, že předpověď je informovaný odhad a není vždy 100\% přesná. Proto je dobré znát rozsah hodnot v nejlepším a nejhorším scénáři, jak je definováno horní a dolní hranicí. V tomto případě je úroveň spolehlivosti pro dolní a horní mez nastavena na 95 \%. Čím vyšší hodnota, tím širší je rozsah mezi horní a dolní hranicí pro dosažení požadované úrovně spolehlivosti.
 
 \begin{figure}[hbt]
 \includegraphics[width=\textwidth]{obrazky-figures/ml-training.png}
-\caption{Řídící hub na začátku svého hlavního souboru {\it Program.cs} obsahuje volání metody {\it EnsureTrainedAsync}, která zkontroluje existenci souboru {\it SmartHeaterModel.zip}, který obsahuje vytrénovaný model, a pokud neexistuje pokračuje ke generování trénovacích a testovacích dat, pokud opět neexistují. Vytvořená trénovací data načte do proměnné typu {\it IDataView} a předá je metodě {\it TrainPipeline}. Nakonec je z vytrénovaného modelu vytvořen objekt typu {\it TimeSeriesPredictionEngine}, který se voláním metody {\it CheckPoint} uloží do souboru {\it SmartHeaterModel.zip}.}
+\caption{Řídící hub na začátku svého hlavního souboru {\it Program.cs} obsahuje volání metody {\it EnsureTrainedAsync}, která zkontroluje existenci souboru {\it SmartHeaterModel.zip}, který obsahuje vytrénovaný model, a pokud neexistuje pokračuje ke generování trénovacích a testovacích dat, pokud opět neexistují. Vytvořená trénovací data načte do proměnné typu {\it IDataView} a předá je metodě {\it TrainPipeline}. Nakonec je z vytrénovaného modelu vytvořen objekt typu {\it TimeSeriesPredictionEngine}, který voláním metody {\it CheckPoint} uloží naučený model do souboru {\it SmartHeaterModel.zip}.}
 \end{figure}
 
 \noindent Na závěr je po uložení vytrénovaného modelu načten i soubor s testovacími daty a předán metodě {\it Evaluate}, která dle \cite{mlnet_tutorial} provede výpočet relevantních metrik nad testovacími daty oproti testovací předpovědi:
@@ -564,7 +563,7 @@ Výsledek předpovědi je nyní možné použít pro rozhodnutí o budoucím sta
 \pagebreak
 
 \section{Sledování chování systému}
-Sběr dat pro monitorování topení je prováděn třídou {\it StatsCollectorInvocable}, která je periodicky spouštěna plánovačem {\it Coravel} podobně jako samotné ovládání strojovým učením. Má na starosti sběr dat o všech registrovaných topných jednotkách (teplota v místnosti a spotřeba elektrické energie) a o počasí, která získá pomocí služeb {\it IHeaterControlService} a {\it IWeatherService} zmíněné dříve. Následně je pomocí služby {\it IDatabaseService} zapíše do databáze. Takto získaná data jsou dále také zpřístupněna uživateli mobilní aplikace.
+Sběr dat pro monitorování topení je prováděn třídou {\it StatsCollectorInvocable}, která je periodicky spouštěna plánovačem {\it Coravel} podobně jako samotné ovládání strojovým učením. Má na starosti sběr dat o všech registrovaných topných jednotkách (okamžitá spotřeba elektrické energie a teplota v místnosti) a o počasí, která získá pomocí služeb {\it IHeaterControlService} a {\it IWeatherService}. Následně je pomocí služby {\it IDatabaseService} zapíše do databáze. Takto získaná data jsou dále také zpřístupněna uživateli mobilní aplikace.
 
 Kód metody {\it Invoke} této třídy je spouštěn v 10sekundových intervalech. Bylo potřeba zvolit periodu dostatečně krátkou pro zajištění dostatečně detailní data pro zachycení různých vlivů prostředí na teplotu v místnosti.
 
@@ -584,7 +583,7 @@ Získaná data jsou zobrazena v grafech získané z webového prostředí datab�
 \begin{figure}[hbt]
 \centering
 \includegraphics[width=\textwidth]{obrazky-figures/test-graph-noml.png}
-\caption{Typické chování původního termostatu ukazuje například 16. únor 2022. Na tomto grafu pozorování je vidět, že topení je v průběhu dne schopno udržovat příjemnou teplotu. Stále je však stejným způsobem spínáno i v případě, že externím vlivem nastává situace ''přetopení''.}
+\caption{Typické chování původního termostatu ukazují například data z 16. února 2022. Na tomto grafu pozorování je vidět, že topení je v průběhu dne schopno udržovat příjemnou teplotu. Stále je však stejným způsobem spínáno i v případě, že externím vlivem nastává situace ''přetopení''.}
 \end{figure}
 
 \begin{figure}[hbt]
@@ -606,6 +605,6 @@ Cílem této práce bylo vytvořit systém chytré domácnosti se specifickým z
 
 Systém je následně schopen tato připojená topení automaticky ovládat s využitím logiky založené na předpovědi strojovým učením nad časovou řadou. Topení jsou ovládána jednotlivě a vytvořený systém je schopen se pro každé z nich přizpůsobit místnosti, ve které je dané topení instalováno.
 
-Během vývoje tohoto systému bylo myšleno i na jeho budoucí rozšíření o možnou podporu dalších zařízení mimo Shelly 1PM (například podporu jiných systémů vytápění, nebo existující chytré přímotopné konvektory). Vytvořená klientská mobilní aplikace také otevírá možnost budoucí implementace dalších klientských služeb (například integrace do otevřené platformy chytré domácnosti typu {\it Home Assistant}). Nakonec na základě dlouhodobého testu vytvořeného systému ovládání by bylo například síť topných jednotek rozšířit o systém chlazení, kterým by byla zajištěna spolehlivější regulace výkyvů teploty v místnosti a širší možnosti využití v teplejších letních měsících.
+Během vývoje tohoto systému bylo myšleno i na jeho budoucí rozšíření o možnou podporu dalších zařízení mimo Shelly 1PM (například podporu jiných systémů vytápění, nebo existující chytré přímotopné konvektory). Vytvořená klientská mobilní aplikace také otevírá možnost budoucí implementace dalších klientských služeb (například integrace do otevřené platformy chytré domácnosti typu {\it Home Assistant}). Nakonec na základě dlouhodobého testu vytvořeného systému ovládání by bylo například síť topných jednotek rozšířit o systém chlazení, kterým by byla zajištěna spolehlivější regulace výkyvů teploty a rozšířena možnost smysluplnějšího využití systému i v teplejších letních měsících.
 
 %===============================================================================
